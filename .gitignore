@@ -1,0 +1,25 @@
+.DS_Store
+**/.atom
+**/.idea
+**/.dart_tool
+.vscode/*
+!.vscode/tasks.json
+!.vscode/settings.json
+!.vscode/launch.json.example
+
+# Ignore all build artifacts
+**/build
+*.iml
+
+# Ignore flutter generated files
+**/Generated.xcconfig
+**/local.properties
+**/flutter_export_environment.sh
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+
+# Coverage
+**/lcov.info
+
+# Melos
+pubspec_overrides.yaml

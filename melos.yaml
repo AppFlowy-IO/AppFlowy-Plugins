@@ -1,0 +1,28 @@
+name: appflowy_plugins
+
+packages:
+  - packages/**
+
+scripts:
+  analyze:
+    exec: dart analyze .
+    concurrency: 1
+    fail-fast: true
+    order-dependents: true
+    description: |
+      Run `dar analyze .` in all packages.
+
+  format:
+    exec: dart format --set-exit-if-changed .
+    concurrency: 1
+    fail-fast: true
+    description: |
+      Run `dart format` in all packages.
+
+  get:
+    exec: flutter pub get
+    concurrency: 1
+    fail-fast: true
+    order-dependents: true
+    description: |
+      Run `flutter pub get` in all packages.

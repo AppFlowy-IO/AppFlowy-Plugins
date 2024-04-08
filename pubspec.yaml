@@ -1,0 +1,10 @@
+name: appflowy_plugins
+publish_to: "none"
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dev_dependencies:
+  build_runner: ^2.4.9
+  flutter_lints: ^3.0.2
+  melos: ^5.3.0
