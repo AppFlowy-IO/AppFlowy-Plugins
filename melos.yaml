@@ -1,28 +1,23 @@
 name: appflowy_plugins
 
 packages:
-  - packages/**
+  - packages/*
+
+command:
+  bootstrap:
+    runPubGetInParallel: false
 
 scripts:
   analyze:
-    exec: dart analyze .
-    concurrency: 1
-    fail-fast: true
-    order-dependents: true
+    run: melos exec dart analyze .
     description: |
-      Run `dar analyze .` in all packages.
+      Run `dart analyze .` in all packages.
 
   format:
-    exec: dart format --set-exit-if-changed .
-    concurrency: 1
-    fail-fast: true
-    description: |
-      Run `dart format` in all packages.
+    run: melos exec dart format . --set-exit-if-changed
+    description: Run `dart format` in all packages.
 
   get:
-    exec: flutter pub get
-    concurrency: 1
-    fail-fast: true
-    order-dependents: true
+    run: melos exec -c 1 flutter pub get
     description: |
       Run `flutter pub get` in all packages.

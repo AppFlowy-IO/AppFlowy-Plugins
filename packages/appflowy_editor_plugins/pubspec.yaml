@@ -1,0 +1,28 @@
+name: appflowy_editor_plugins
+description: "A collection of plugins for the AppFlowy Editor."
+version: 0.0.1
+homepage: https://github.com/AppFlowy-IO/appflowy-plugins
+
+# Can only publish when other packages are published,
+# so there is no reliance on git.
+publish_to: "none"
+
+environment:
+  sdk: ">=3.1.5 <4.0.0"
+  flutter: ">=3.13.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  af_link_preview:
+    path: ../af_link_preview
+    # git:
+    #   url: https://github.com/AppFlowy-IO/appflowy_plugins
+    #   path: packages/af_link_preview
+
+dev_dependencies:
+  flutter_lints: ^3.0.0
+
+# The following section is specific to Flutter packages.
+flutter:
