@@ -6,7 +6,7 @@ Powerful add-ons for the flexible and popular rich-text editor [AppFlowy Editor]
 
 - [Link Preview](https://github.com/AppFlowy-IO/appflowy-plugins/blob/main/packages/af_link_preview)
 
-Looking for a plugin but cannot find it on the list? Submit a [Plugin request](https://github.com/AppFlowy-IO/appflowy-plugins/issues/new)!
+Looking for a plugin but cannot find it on the list? Submit a [Plugin request](https://github.com/AppFlowy-IO/AppFlowy-plugins/issues/new?assignees=&labels=&projects=&template=plugin_request.yaml&title=[Plugin%20request])!
 
 ## Melos
 
