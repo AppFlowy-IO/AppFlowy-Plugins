@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:af_link_preview/af_link_preview.dart';
 import 'package:appflowy_editor/appflowy_editor.dart';
+import 'package:appflowy_editor_plugins/appflowy_editor_plugins.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class LinkPreviewBlockKeys {
@@ -11,14 +11,10 @@ class LinkPreviewBlockKeys {
   static const String url = 'url';
 }
 
-Node linkPreviewNode({required String url}) {
-  return Node(
-    type: LinkPreviewBlockKeys.type,
-    attributes: {
-      LinkPreviewBlockKeys.url: url,
-    },
-  );
-}
+Node linkPreviewNode({required String url}) => Node(
+      type: LinkPreviewBlockKeys.type,
+      attributes: {LinkPreviewBlockKeys.url: url},
+    );
 
 abstract class LinkPreviewDataCacheInterface {
   Future<LinkPreviewData?> get(String url);
@@ -77,10 +73,7 @@ class LinkPreviewBlockComponentBuilder extends BlockComponentBuilder {
       node: node,
       configuration: configuration,
       showActions: showActions(node),
-      actionBuilder: (context, state) => actionBuilder(
-        blockComponentContext,
-        state,
-      ),
+      actionBuilder: (_, state) => actionBuilder(blockComponentContext, state),
       builder: builder,
       errorBuilder: errorBuilder,
       showMenu: showMenu,
@@ -90,9 +83,8 @@ class LinkPreviewBlockComponentBuilder extends BlockComponentBuilder {
   }
 
   @override
-  bool validate(Node node) {
-    return node.attributes[LinkPreviewBlockKeys.url]!.isNotEmpty;
-  }
+  bool validate(Node node) =>
+      node.attributes[LinkPreviewBlockKeys.url]!.isNotEmpty;
 }
 
 class LinkPreviewBlockComponent extends BlockComponentStatefulWidget {
@@ -126,8 +118,10 @@ class LinkPreviewBlockComponentState extends State<LinkPreviewBlockComponent>
     with BlockComponentConfigurable {
   @override
   BlockComponentConfiguration get configuration => widget.configuration;
+
   @override
   Node get node => widget.node;
+
   String get url => widget.node.attributes[LinkPreviewBlockKeys.url]!;
 
   late final LinkPreviewParser parser;
@@ -145,10 +139,7 @@ class LinkPreviewBlockComponentState extends State<LinkPreviewBlockComponent>
     errorBuilder = widget.errorBuilder ?? _defaultErrorWidget;
     loadingBuilder = widget.loadingBuilder ?? _defaultLoadingWidget;
 
-    parser = LinkPreviewParser(
-      url: url,
-      cache: widget.cache,
-    );
+    parser = LinkPreviewParser(url: url, cache: widget.cache);
     future = parser.start();
   }
 
@@ -166,7 +157,6 @@ class LinkPreviewBlockComponentState extends State<LinkPreviewBlockComponent>
         final image = parser.getContent(LinkPreviewRegex.image);
 
         Widget child;
-
         if (title == null && description == null && image == null) {
           child = errorBuilder(context);
         } else {
@@ -186,10 +176,7 @@ class LinkPreviewBlockComponentState extends State<LinkPreviewBlockComponent>
               );
         }
 
-        child = Padding(
-          padding: padding,
-          child: child,
-        );
+        child = Padding(padding: padding, child: child);
 
         if (widget.showActions && widget.actionBuilder != null) {
           child = BlockComponentActionWrapper(
@@ -211,19 +198,12 @@ class LinkPreviewBlockComponentState extends State<LinkPreviewBlockComponent>
             opaque: false,
             child: ValueListenableBuilder<bool>(
               valueListenable: showActionsNotifier,
-              builder: (context, value, child) {
-                return Stack(
-                  children: [
-                    child!,
-                    if (value)
-                      widget.menuBuilder!(
-                        context,
-                        widget.node,
-                        this,
-                      ),
-                  ],
-                );
-              },
+              builder: (context, value, child) => Stack(
+                children: [
+                  child!,
+                  if (value) widget.menuBuilder!(context, widget.node, this),
+                ],
+              ),
               child: child,
             ),
           );
@@ -242,14 +222,11 @@ class LinkPreviewBlockComponentState extends State<LinkPreviewBlockComponent>
           border: Border.all(
             color: Theme.of(context).colorScheme.onSurface,
           ),
-          borderRadius: BorderRadius.circular(
-            8.0,
-          ),
+          borderRadius: BorderRadius.circular(8.0),
         ),
         child: const Center(
-          child: Text(
-            'No preview available',
-          ),
+          // TODO(Lucas): Enable ability to localize this
+          child: Text('No preview available'),
         ),
       ),
     );
@@ -258,9 +235,7 @@ class LinkPreviewBlockComponentState extends State<LinkPreviewBlockComponent>
   Widget _defaultLoadingWidget(BuildContext context) {
     return const SizedBox(
       height: 60,
-      child: Center(
-        child: CircularProgressIndicator.adaptive(),
-      ),
+      child: Center(child: CircularProgressIndicator.adaptive()),
     );
   }
 }
@@ -287,9 +262,7 @@ class _LinkPreviewWidget extends StatelessWidget {
       child: Container(
         clipBehavior: Clip.hardEdge,
         decoration: BoxDecoration(
-          border: Border.all(
-            color: theme.colorScheme.onSurface,
-          ),
+          border: Border.all(color: theme.colorScheme.onSurface),
           borderRadius: BorderRadius.circular(
             8.0,
           ),

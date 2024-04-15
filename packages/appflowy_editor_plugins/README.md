@@ -6,4 +6,4 @@ For a more selective approach, you can choose to depend only on the plugins you 
 
 ## Plugins
 
-- [Link Preview Block]()
+- [Link Preview Block](https://github.com/AppFlowy-IO/appflowy-plugins/tree/main/packages/af_link_preview)
