@@ -99,14 +99,20 @@ Node codeBlockNode({
   );
 }
 
-// defining the callout block menu item for selection
-SelectionMenuItem codeBlockItem = SelectionMenuItem.node(
-  getName: () => 'Code block',
-  iconData: Icons.abc,
-  keywords: ['code', 'codeblock'],
-  nodeBuilder: (_, __) => codeBlockNode(),
-  replace: (_, node) => node.delta?.isEmpty ?? false,
-);
+// Code block menu item for selection
+SelectionMenuItem codeBlockItem(
+  String name, [
+  IconData icon = Icons.abc,
+  List<String> keywords = const ['code', 'codeblock'],
+  String? language,
+]) =>
+    SelectionMenuItem.node(
+      getName: () => name,
+      iconData: icon,
+      keywords: keywords,
+      nodeBuilder: (_, __) => codeBlockNode(language: language),
+      replace: (_, node) => node.delta?.isEmpty ?? false,
+    );
 
 const _interceptorKey = 'code-block-interceptor';
 
