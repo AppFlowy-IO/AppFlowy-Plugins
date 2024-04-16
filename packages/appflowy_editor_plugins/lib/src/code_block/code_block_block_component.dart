@@ -138,7 +138,7 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
       right: 20,
       bottom: 50,
     ),
-    this.style,
+    this.styleBuilder,
     this.actions = const CodeBlockActions(),
     this.actionWrapperBuilder,
     this.languagePickerBuilder,
@@ -149,7 +149,7 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
 
   final EdgeInsets padding;
   final EditorState editorState;
-  final CodeBlockStyle? style;
+  final CodeBlockStyle Function()? styleBuilder;
   final CodeBlockActions actions;
   final Widget Function(
     Node node,
@@ -173,7 +173,7 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
       showActions: showActions(node),
       actionBuilder: (_, state) => actionBuilder(blockComponentContext, state),
       actionWrapperBuilder: actionWrapperBuilder,
-      style: style,
+      style: styleBuilder?.call(),
       languagePickerBuilder: languagePickerBuilder,
       actions: actions,
       copyButtonBuilder: copyButtonBuilder,

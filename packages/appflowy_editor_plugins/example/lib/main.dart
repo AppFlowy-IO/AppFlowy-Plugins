@@ -10,22 +10,37 @@ void main() {
   runApp(const AppWidget());
 }
 
-class AppWidget extends StatelessWidget {
+class AppWidget extends StatefulWidget {
   const AppWidget({super.key});
+
+  @override
+  State<AppWidget> createState() => _AppWidgetState();
+}
+
+class _AppWidgetState extends State<AppWidget> {
+  ThemeData theme = ThemeData.light();
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Plugins',
-      theme: ThemeData.light(),
-      home: const Editor(),
+      theme: theme,
+      home: Editor(
+        toggleBrightness: () => setState(
+          () => theme = theme.brightness == Brightness.light
+              ? ThemeData.dark()
+              : ThemeData.light(),
+        ),
+      ),
     );
   }
 }
 
 class Editor extends StatefulWidget {
-  const Editor({super.key});
+  const Editor({super.key, required this.toggleBrightness});
+
+  final VoidCallback toggleBrightness;
 
   @override
   State<Editor> createState() => _EditorState();
@@ -69,9 +84,13 @@ class _EditorState extends State<Editor> {
             height: 1.5,
           ),
         ),
-        style: CodeBlockStyle(
-          backgroundColor: Colors.grey[200]!,
-          foregroundColor: Colors.blue,
+        styleBuilder: () => CodeBlockStyle(
+          backgroundColor: Theme.of(context).brightness == Brightness.light
+              ? Colors.grey[200]!
+              : Colors.grey[800]!,
+          foregroundColor: Theme.of(context).brightness == Brightness.light
+              ? Colors.blue
+              : Colors.blue[800]!,
         ),
         actions: CodeBlockActions(
           onCopy: (code) => Clipboard.setData(ClipboardData(text: code)),
@@ -102,6 +121,19 @@ class _EditorState extends State<Editor> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Editor Plugins'),
+        actions: [
+          IconButton(
+            onPressed: widget.toggleBrightness,
+            icon: Icon(
+              Theme.of(context).brightness == Brightness.light
+                  ? Icons.dark_mode
+                  : Icons.light_mode,
+            ),
+          ),
+        ],
+      ),
       body: AppFlowyEditor(
         editorState: editorState,
         characterShortcutEvents: shortcutEvents,
