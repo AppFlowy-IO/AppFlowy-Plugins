@@ -1,1 +1,2 @@
-export 'link_preview/link_preview.dart';
+export 'link_preview/plugin.dart';
+export 'code_block/plugin.dart';

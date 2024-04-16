@@ -54,3 +54,67 @@ KeyEventResult _convertUrlToLinkPreviewBlockCommandHandler(
 
   return KeyEventResult.handled;
 }
+
+/// Try to convert pasted content into link preview, if it fails then we
+/// fallback to the standard [pasteCommand].
+///
+final CommandShortcutEvent linkPreviewCustomPasteCommand = CommandShortcutEvent(
+  key: 'paste content w/ link preview converter',
+  getDescription: () => 'Paste content with link preview converter',
+  command: 'ctrl+v',
+  macOSCommand: 'cmd+v',
+  handler: _pasteCommandHandler,
+);
+
+CommandShortcutEventHandler _pasteCommandHandler = (editorState) {
+  final selection = editorState.selection;
+  if (selection == null) {
+    return KeyEventResult.ignored;
+  }
+
+  () async {
+    final data = await AppFlowyClipboard.getData();
+    final text = data.text;
+
+    final result = await _pasteAsLinkPreview(editorState, text);
+    if (result) {
+      return KeyEventResult.handled;
+    }
+
+    return pasteCommand.execute(editorState);
+  }();
+
+  return KeyEventResult.handled;
+};
+
+Future<bool> _pasteAsLinkPreview(
+  EditorState editorState,
+  String? text,
+) async {
+  if (text == null || !isURL(text)) {
+    return false;
+  }
+
+  final selection = editorState.selection;
+  if (selection == null ||
+      !selection.isCollapsed ||
+      selection.startIndex != 0) {
+    return false;
+  }
+
+  final node = editorState.getNodeAtPath(selection.start.path);
+  if (node == null ||
+      node.type != ParagraphBlockKeys.type ||
+      node.delta?.toPlainText().isNotEmpty == true) {
+    return false;
+  }
+
+  final transaction = editorState.transaction;
+  transaction.insertNode(
+    selection.start.path,
+    linkPreviewNode(url: text),
+  );
+  await editorState.apply(transaction);
+
+  return true;
+}

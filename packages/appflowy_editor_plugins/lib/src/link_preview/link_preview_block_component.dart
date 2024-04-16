@@ -225,7 +225,6 @@ class LinkPreviewBlockComponentState extends State<LinkPreviewBlockComponent>
           borderRadius: BorderRadius.circular(8.0),
         ),
         child: const Center(
-          // TODO(Lucas): Enable ability to localize this
           child: Text('No preview available'),
         ),
       ),
