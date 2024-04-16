@@ -286,7 +286,6 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
   @override
   EditorState get editorState => widget.editorState;
 
-  // final popoverController = PopoverController();
   final scrollController = ScrollController();
 
   // We use this to calculate the position of the cursor in the code block
