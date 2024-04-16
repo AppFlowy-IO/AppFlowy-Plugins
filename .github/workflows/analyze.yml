@@ -17,7 +17,7 @@ on:
   workflow_dispatch:
 
 env:
-  FLUTTER_VERSION: "3.19.0"
+  FLUTTER_VERSION: "3.19.5"
 
 jobs:
   analyze:
@@ -31,9 +31,6 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: "stable"
-          cache: true
-          cache-key: "flutter-:os:-:channel:-:version:-:arch:-:hash:"
-          cache-path: "${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:"
           flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - name: Setup Melos
