@@ -372,15 +372,17 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
                       localizations: widget.localizations,
                     ),
                     const Spacer(),
-                    if (widget.actions.onCopy != null)
-                      widget.copyButtonBuilder != null
-                          ? widget.copyButtonBuilder!(editorState, node)
-                          : _CopyButton(
-                              node: node,
-                              onCopy: widget.actions.onCopy!,
-                              localizations: widget.localizations,
-                              foregroundColor: widget.style?.foregroundColor,
-                            ),
+                    if (widget.actions.onCopy != null &&
+                        widget.copyButtonBuilder == null) ...[
+                      _CopyButton(
+                        node: node,
+                        onCopy: widget.actions.onCopy!,
+                        localizations: widget.localizations,
+                        foregroundColor: widget.style?.foregroundColor,
+                      ),
+                    ] else if (widget.copyButtonBuilder != null) ...[
+                      widget.copyButtonBuilder!(editorState, node),
+                    ],
                   ],
                 ),
               ),
