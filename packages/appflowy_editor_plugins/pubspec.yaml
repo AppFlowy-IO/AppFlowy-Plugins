@@ -3,6 +3,20 @@ description: "A collection of plugins for the AppFlowy Editor."
 version: 0.0.1
 homepage: https://github.com/AppFlowy-IO/appflowy-plugins
 
+topics:
+  - editor
+  - appflowy
+  - plugins
+  - widgets
+
+platforms:
+  android:
+  ios:
+  linux:
+  macos:
+  windows:
+  web:
+
 # Can only publish when other packages are published,
 # so there is no reliance on git.
 publish_to: "none"
