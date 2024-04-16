@@ -112,11 +112,11 @@ const _interceptorKey = 'code-block-interceptor';
 
 /// Used to provide a custom Language picker widget for the [CodeBlockComponentWidget].
 ///
-typedef CodeBlockLanguagePickerBuilder = Widget Function({
+typedef CodeBlockLanguagePickerBuilder = Widget Function(
   EditorState editorState,
   List<String> supportedLanguages,
+  void Function(String language) onLanguageSelected, {
   String? selectedLanguage,
-  void Function(String language) onLanguageSelected,
 
   /// Used to manage the visibility of the language picker, to ensure
   /// it is visible while the user is currently interacting with it.
@@ -675,10 +675,12 @@ class _LanguageSelectorState extends State<_LanguageSelector> {
   Widget build(BuildContext context) {
     if (widget.languagePickerBuilder != null) {
       return widget.languagePickerBuilder!(
-        editorState: widget.editorState,
-        supportedLanguages: defaultCodeBlockSupportedLanguages,
+        widget.editorState,
+        defaultCodeBlockSupportedLanguages,
+        widget.onLanguageSelected,
         selectedLanguage: widget.language,
-        onLanguageSelected: widget.onLanguageSelected,
+        onMenuOpen: widget.onMenuOpen,
+        onMenuClose: widget.onMenuClose,
       );
     }
 
