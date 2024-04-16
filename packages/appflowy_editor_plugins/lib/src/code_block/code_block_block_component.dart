@@ -126,7 +126,7 @@ typedef CodeBlockLanguagePickerBuilder = Widget Function(
 
 /// Used to provide a custom copy button for the [CodeBlockComponentWidget].
 ///
-typedef CodeBlockCopyBuilder = Widget Function({EditorState editorState});
+typedef CodeBlockCopyBuilder = Widget Function(EditorState, Node);
 
 class CodeBlockComponentBuilder extends BlockComponentBuilder {
   CodeBlockComponentBuilder({
@@ -374,7 +374,7 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
                     const Spacer(),
                     if (widget.actions.onCopy != null)
                       widget.copyButtonBuilder != null
-                          ? widget.copyButtonBuilder!(editorState: editorState)
+                          ? widget.copyButtonBuilder!(editorState, node)
                           : _CopyButton(
                               node: node,
                               onCopy: widget.actions.onCopy!,
