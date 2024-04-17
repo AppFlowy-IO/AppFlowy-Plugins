@@ -18,13 +18,12 @@ List<CommandShortcutEvent> codeBlockCommands({
       ),
       pasteInCodeblock(localizations.codeBlockPasteText),
       selectAllInCodeBlockCommand(localizations.codeBlockSelectAll),
-      tabToInsertSpacesInCodeBlockCommand(localizations.codeBlockAddTwoSpaces),
-      tabToDeleteSpacesInCodeBlockCommand(
-        localizations.codeBlockDeleteTwoSpaces,
-      ),
+      tabToInsertSpacesInCodeBlockCommand(localizations.codeBlockIndentLines),
+      tabToDeleteSpacesInCodeBlockCommand(localizations.codeBlockOutdentLines),
+      tabSpacesAtCurosrInCodeBlockCommand(localizations.codeBlockAddTwoSpaces),
     ];
 
-/// press the enter key in code block to insert a new line in it.
+/// Press the enter key in code block to insert a new line in it.
 ///
 /// - support
 ///   - desktop
@@ -37,7 +36,7 @@ final CharacterShortcutEvent enterInCodeBlock = CharacterShortcutEvent(
   handler: _enterInCodeBlockCommandHandler,
 );
 
-/// ignore ' ', '/', '_', '*' in code block.
+/// Ignore ' ', '/', '_', '*' in code block.
 ///
 /// - support
 ///   - desktop
@@ -56,7 +55,7 @@ final List<CharacterShortcutEvent> ignoreKeysInCodeBlock =
         )
         .toList();
 
-/// shift + enter to insert a new node next to the code block.
+/// Shift+enter to insert a new node next to the code block.
 ///
 /// - support
 ///   - desktop
@@ -72,14 +71,27 @@ CommandShortcutEvent insertNewParagraphNextToCodeBlockCommand(
       handler: _insertNewParagraphNextToCodeBlockCommandHandler,
     );
 
-/// tab to insert two spaces at the line start in code block.
+/// Tab to insert two spaces at the cursor if selection is collapsed.
 ///
 /// - support
 ///   - desktop
 ///   - web
-CommandShortcutEvent tabToInsertSpacesInCodeBlockCommand(
-  String description,
-) =>
+CommandShortcutEvent tabSpacesAtCurosrInCodeBlockCommand(String description) =>
+    CommandShortcutEvent(
+      key: 'tab to insert two spaces at the cursor in code block',
+      command: 'tab',
+      getDescription: () => description,
+      handler: (editorState) =>
+          _addTwoSpacesInCodeBlockCommandHandler(editorState),
+    );
+
+/// Tab to insert two spaces at the line start in code block,
+/// if there is more than one line selected.
+///
+/// - support
+///   - desktop
+///   - web
+CommandShortcutEvent tabToInsertSpacesInCodeBlockCommand(String description) =>
     CommandShortcutEvent(
       key: 'tab to insert two spaces at the line start in code block',
       command: 'tab',
@@ -90,7 +102,7 @@ CommandShortcutEvent tabToInsertSpacesInCodeBlockCommand(
       ),
     );
 
-/// shift+tab to delete two spaces at the line start in code block if needed.
+/// Shift+tab to delete two spaces at the line start in code block if needed.
 ///
 /// - support
 ///   - desktop
@@ -223,12 +235,34 @@ CommandShortcutEventHandler _insertNewParagraphNextToCodeBlockCommandHandler =
   return KeyEventResult.handled;
 };
 
+KeyEventResult _addTwoSpacesInCodeBlockCommandHandler(
+  EditorState editorState,
+) {
+  final selection = editorState.selection;
+  if (selection == null || !selection.isCollapsed) {
+    return KeyEventResult.ignored;
+  }
+
+  final node = editorState.getNodeAtPath(selection.end.path);
+  final delta = node?.delta;
+  if (node == null || delta == null || node.type != CodeBlockKeys.type) {
+    return KeyEventResult.ignored;
+  }
+
+  final transaction = editorState.transaction
+    ..insertText(node, selection.end.offset, '  ');
+
+  editorState.apply(transaction);
+
+  return KeyEventResult.handled;
+}
+
 KeyEventResult _indentationInCodeBlockCommandHandler(
   EditorState editorState,
   bool shouldIndent,
 ) {
   final selection = editorState.selection;
-  if (selection == null) {
+  if (selection == null || selection.isCollapsed) {
     return KeyEventResult.ignored;
   }
   final node = editorState.getNodeAtPath(selection.end.path);
