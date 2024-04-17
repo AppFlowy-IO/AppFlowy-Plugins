@@ -36,7 +36,7 @@ final CharacterShortcutEvent enterInCodeBlock = CharacterShortcutEvent(
   handler: _enterInCodeBlockCommandHandler,
 );
 
-/// Ignore ' ', '/', '_', '*' in code block.
+/// ignore ' ', '/', '_', '*', '@', '+', '[', ']' characters in code block.
 ///
 /// - support
 ///   - desktop
@@ -44,7 +44,7 @@ final CharacterShortcutEvent enterInCodeBlock = CharacterShortcutEvent(
 ///   - mobile
 ///
 final List<CharacterShortcutEvent> ignoreKeysInCodeBlock =
-    [' ', '/', '_', '*', '~', '-']
+    [' ', '/', '_', '*', '~', '-', '+', '@', '[', ']']
         .map(
           (e) => CharacterShortcutEvent(
             key: 'ignore keys in code block',
