@@ -7,6 +7,7 @@ import 'package:appflowy_editor_plugins/src/code_block/code_block_localization.d
 final List<CharacterShortcutEvent> codeBlockCharacterEvents = [
   enterInCodeBlock,
   ...ignoreKeysInCodeBlock,
+  insertCodeBlock,
 ];
 
 List<CommandShortcutEvent> codeBlockCommands({
@@ -374,4 +375,77 @@ CommandShortcutEventHandler _pasteInCodeBlock = (editorState) {
   }();
 
   return KeyEventResult.handled;
+};
+
+/// ``` to insert a Code Block
+/// - support
+///  - desktop
+///  - web
+///  - mobile
+///
+final CharacterShortcutEvent insertCodeBlock = CharacterShortcutEvent(
+  key: 'insert code block',
+  character: '`',
+  handler: _insertCodeBlockHandler,
+);
+
+CharacterShortcutEventHandler _insertCodeBlockHandler = (editorState) async {
+  final selection = editorState.selection;
+  if (selection == null || !selection.isCollapsed) {
+    return false;
+  }
+
+  final node = editorState.getNodeAtPath(selection.end.path);
+  final delta = node?.delta;
+  if (node == null || delta == null || node.type != ParagraphBlockKeys.type) {
+    return false;
+  }
+
+  final plainText = delta.toPlainText();
+  bool startOfLine = false;
+  if (plainText.length == 2) {
+    final testString = plainText.substring(
+      selection.end.offset - 2,
+      selection.end.offset,
+    );
+
+    if (testString != '``') {
+      return false;
+    }
+
+    startOfLine = true;
+  } else if (plainText.length > 2) {
+    final testString = plainText.substring(
+      selection.end.offset - 3,
+      selection.end.offset,
+    );
+
+    if (testString != ' ``') {
+      return false;
+    }
+  } else {
+    return false;
+  }
+
+  final transaction = editorState.transaction
+    ..insertText(node, selection.end.offset, ' ')
+    ..deleteText(
+      node,
+      selection.end.offset - (startOfLine ? 2 : 3),
+      (startOfLine ? 2 : 3),
+    )
+    ..insertNode(
+      startOfLine ? node.path : node.path.next,
+      codeBlockNode(),
+    )
+    ..afterSelection = Selection.collapsed(
+      Position(path: startOfLine ? node.path : node.path.next),
+    );
+
+  if (startOfLine) {
+    transaction.deleteNode(node);
+  }
+
+  await editorState.apply(transaction);
+  return true;
 };

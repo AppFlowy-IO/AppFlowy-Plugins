@@ -11,7 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  appflowy_editor: 2.3.4
+  appflowy_editor: ^2.3.4
 
   appflowy_editor_plugins:
     path: ../
