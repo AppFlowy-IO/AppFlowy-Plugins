@@ -17,10 +17,6 @@ platforms:
   windows:
   web:
 
-# Can only publish when other packages are published,
-# so there is no reliance on git.
-publish_to: "none"
-
 environment:
   sdk: ">=3.1.5 <4.0.0"
   flutter: ">=3.13.0"
