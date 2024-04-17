@@ -11,10 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  appflowy_editor:
-    git:
-      url: https://github.com/AppFlowy-IO/appflowy-editor.git
-      ref: "6d12761"
+  appflowy_editor: 2.3.4
 
   appflowy_editor_plugins:
     path: ../
@@ -23,7 +20,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  flutter_lints: ^3.0.0
+  flutter_lints: ^3.0.2
 
 flutter:
   uses-material-design: true
