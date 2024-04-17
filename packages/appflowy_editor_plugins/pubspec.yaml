@@ -1,5 +1,5 @@
 name: appflowy_editor_plugins
-description: "A collection of plugins for the AppFlowy Editor."
+description: "A collection of plugins and custom block components for the AppFlowy Editor."
 version: 0.0.1
 homepage: https://github.com/AppFlowy-IO/appflowy-plugins
 
