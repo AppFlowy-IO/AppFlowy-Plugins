@@ -36,7 +36,7 @@ final CharacterShortcutEvent enterInCodeBlock = CharacterShortcutEvent(
   handler: _enterInCodeBlockCommandHandler,
 );
 
-/// ignore ' ', '/', '_', '*', '@', '+', '[', ']' characters in code block.
+/// Ignore ' ', '/', '_', '*' in code block.
 ///
 /// - support
 ///   - desktop
@@ -44,7 +44,7 @@ final CharacterShortcutEvent enterInCodeBlock = CharacterShortcutEvent(
 ///   - mobile
 ///
 final List<CharacterShortcutEvent> ignoreKeysInCodeBlock =
-    [' ', '/', '_', '*', '~', '-', '+', '@', '[', ']']
+    [' ', '/', '_', '*', '~', '-']
         .map(
           (e) => CharacterShortcutEvent(
             key: 'ignore keys in code block',
@@ -278,25 +278,26 @@ KeyEventResult _indentationInCodeBlockCommandHandler(
   // We store indexes to be indented in a list, because we should
   // indent it in a reverse order to not mess up the offsets.
   final List<int> transactions = [];
+  bool selectionStartsAtLineStart = false;
 
   for (final line in lines) {
     if (!shouldIndent && line.startsWith(spaces) || shouldIndent) {
       bool shouldTransform = false;
-      if (selection.isCollapsed) {
-        shouldTransform = index <= selection.endIndex &&
-            selection.endIndex <= index + line.length;
-      } else {
-        shouldTransform = index + line.length >= selection.startIndex &&
-            selection.endIndex >= index;
 
-        if (shouldIndent && line.trim().isEmpty) {
-          shouldTransform = false;
-        }
+      shouldTransform = index + line.length >= selection.startIndex &&
+          selection.endIndex >= index;
+
+      if (shouldIndent && line.trim().isEmpty) {
+        shouldTransform = false;
       }
 
       if (shouldTransform) {
         transactions.add(index);
       }
+    }
+
+    if ([index, index + 1].contains(selection.startIndex)) {
+      selectionStartsAtLineStart = true;
     }
 
     index += line.length + 1;
@@ -309,11 +310,9 @@ KeyEventResult _indentationInCodeBlockCommandHandler(
   final transaction = editorState.transaction;
 
   for (final index in transactions.reversed) {
-    if (shouldIndent) {
-      transaction.insertText(node, index, spaces);
-    } else {
-      transaction.deleteText(node, index, spaces.length);
-    }
+    shouldIndent
+        ? transaction.insertText(node, index, spaces)
+        : transaction.deleteText(node, index, spaces.length);
   }
 
   // In case the selection is made backwards, we store the start
@@ -329,7 +328,7 @@ KeyEventResult _indentationInCodeBlockCommandHandler(
 
   final startOffset = shouldIndent
       ? start.offset + spaces.length
-      : start.offset - spaces.length;
+      : start.offset - (selectionStartsAtLineStart ? 0 : spaces.length);
 
   final startSelection = selection.isCollapsed
       ? endSelection

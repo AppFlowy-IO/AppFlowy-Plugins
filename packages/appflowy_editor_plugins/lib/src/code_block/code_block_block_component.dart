@@ -142,7 +142,7 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
       top: 20,
       left: 20,
       right: 20,
-      bottom: 50,
+      bottom: 34,
     ),
     this.styleBuilder,
     this.actions = const CodeBlockActions(),
@@ -463,24 +463,31 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
             ),
           ],
           Flexible(
-            child: SingleChildScrollView(
-              key: codeBlockKey,
-              controller: scrollController,
-              physics: const ClampingScrollPhysics(),
-              scrollDirection: Axis.horizontal,
-              child: AppFlowyRichText(
-                key: forwardKey,
-                delegate: this,
-                node: widget.node,
-                editorState: editorState,
-                placeholderText: placeholderText,
-                lineHeight: 1.5,
-                textSpanDecorator: (_) =>
-                    TextSpan(style: textStyle, children: codeTextSpans),
-                placeholderTextSpanDecorator: (textSpan) => textSpan,
-                textDirection: textDirection,
-                cursorColor: editorState.editorStyle.cursorColor,
-                selectionColor: editorState.editorStyle.selectionColor,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 1),
+              child: Scrollbar(
+                controller: scrollController,
+                child: SingleChildScrollView(
+                  key: codeBlockKey,
+                  controller: scrollController,
+                  padding: const EdgeInsets.only(bottom: 16),
+                  physics: const ClampingScrollPhysics(),
+                  scrollDirection: Axis.horizontal,
+                  child: AppFlowyRichText(
+                    key: forwardKey,
+                    delegate: this,
+                    node: widget.node,
+                    editorState: editorState,
+                    placeholderText: placeholderText,
+                    lineHeight: 1.5,
+                    textSpanDecorator: (_) =>
+                        TextSpan(style: textStyle, children: codeTextSpans),
+                    placeholderTextSpanDecorator: (textSpan) => textSpan,
+                    textDirection: textDirection,
+                    cursorColor: editorState.editorStyle.cursorColor,
+                    selectionColor: editorState.editorStyle.selectionColor,
+                  ),
+                ),
               ),
             ),
           ),
