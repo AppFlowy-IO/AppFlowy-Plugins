@@ -1,3 +1,7 @@
+## 0.0.3
+
+- Add base video block plugin
+
 ## 0.0.2
 
 - Fix for line number not aligning well
