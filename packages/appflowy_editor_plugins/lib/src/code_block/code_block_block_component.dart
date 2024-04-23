@@ -9,6 +9,7 @@ import 'package:appflowy_editor_plugins/src/code_block/code_block_style.dart';
 import 'package:appflowy_editor_plugins/src/utils/string_ext.dart';
 import 'package:highlight/highlight.dart' as highlight;
 import 'package:highlight/languages/all.dart';
+import 'package:provider/provider.dart';
 
 import 'code_block_themes.dart';
 
@@ -137,7 +138,6 @@ typedef CodeBlockCopyBuilder = Widget Function(EditorState, Node);
 class CodeBlockComponentBuilder extends BlockComponentBuilder {
   CodeBlockComponentBuilder({
     super.configuration,
-    required this.editorState,
     this.padding = const EdgeInsets.only(
       top: 20,
       left: 20,
@@ -154,7 +154,6 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
   });
 
   final EdgeInsets padding;
-  final EditorState editorState;
   final CodeBlockStyle Function()? styleBuilder;
   final CodeBlockActions actions;
   final Widget Function(
@@ -173,7 +172,6 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
     return CodeBlockComponentWidget(
       key: node.key,
       node: node,
-      editorState: editorState,
       configuration: configuration,
       padding: padding,
       showActions: showActions(node),
@@ -201,7 +199,6 @@ class CodeBlockComponentWidget extends BlockComponentStatefulWidget {
   const CodeBlockComponentWidget({
     super.key,
     required super.node,
-    required this.editorState,
     super.showActions,
     super.actionBuilder,
     super.configuration = const BlockComponentConfiguration(),
@@ -216,7 +213,6 @@ class CodeBlockComponentWidget extends BlockComponentStatefulWidget {
   });
 
   final EdgeInsets padding;
-  final EditorState editorState;
 
   /// The style of the code block.
   ///
@@ -290,7 +286,7 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
   Node get node => widget.node;
 
   @override
-  EditorState get editorState => widget.editorState;
+  EditorState get editorState => context.read<EditorState>();
 
   final scrollController = ScrollController();
 

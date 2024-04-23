@@ -7,6 +7,9 @@ import 'package:appflowy_editor/appflowy_editor.dart';
 import 'package:appflowy_editor_plugins/appflowy_editor_plugins.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  VideoBlockKit.ensureInitialized();
+
   runApp(const AppWidget());
 }
 
@@ -76,7 +79,6 @@ class _EditorState extends State<Editor> {
     blockComponentBuilders = {
       ...standardBlockComponentBuilderMap,
       CodeBlockKeys.type: CodeBlockComponentBuilder(
-        editorState: editorState,
         configuration: BlockComponentConfiguration(
           textStyle: (_) => const TextStyle(
             fontFamily: 'RobotoMono',
@@ -115,6 +117,14 @@ class _EditorState extends State<Editor> {
           ),
         ),
       ),
+      VideoBlockKeys.type: VideoBlockComponentBuilder(
+        showMenu: true,
+        menuBuilder: (Node node, VideoBlockComponentState state) => Positioned(
+          top: 0,
+          right: 10,
+          child: VideoBlockMenu(node: node, state: state),
+        ),
+      ),
     };
   }
 
@@ -136,6 +146,9 @@ class _EditorState extends State<Editor> {
       ),
       body: AppFlowyEditor(
         editorState: editorState,
+        editorStyle: PlatformExtension.isMobile
+            ? const EditorStyle.mobile()
+            : const EditorStyle.desktop(),
         characterShortcutEvents: shortcutEvents,
         commandShortcutEvents: commandEvents,
         blockComponentBuilders: blockComponentBuilders,
@@ -151,6 +164,13 @@ const _initialDocumentData = """{
       {
         "type": "paragraph",
         "data": {"delta": []}
+      },
+      {
+        "type": "video",
+        "data": {
+          "url": "https://file-examples.com/storage/fee868065066261f19c04c3/2017/04/file_example_MP4_480_1_5MG.mp4",
+          "width": 320.0
+        }
       },
       {
         "type": "code",
