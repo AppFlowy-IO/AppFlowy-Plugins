@@ -26,6 +26,7 @@ dependencies:
     sdk: flutter
 
   appflowy_editor: ^2.3.4
+  provider: ^6.1.2
 
   # Link Preview Plugin
   url_launcher: ^6.2.6
@@ -35,6 +36,11 @@ dependencies:
 
   # Code Block Plugin
   highlight: ^0.7.0
+
+  # Video Plugin
+  media_kit: ^1.1.10+1
+  media_kit_video: ^1.2.4
+  media_kit_libs_video: ^1.0.4
 
 dev_dependencies:
   flutter_lints: ^3.0.2

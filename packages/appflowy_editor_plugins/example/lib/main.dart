@@ -7,6 +7,9 @@ import 'package:appflowy_editor/appflowy_editor.dart';
 import 'package:appflowy_editor_plugins/appflowy_editor_plugins.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  VideoBlockKit.ensureInitialized();
+
   runApp(const AppWidget());
 }
 
@@ -76,7 +79,6 @@ class _EditorState extends State<Editor> {
     blockComponentBuilders = {
       ...standardBlockComponentBuilderMap,
       CodeBlockKeys.type: CodeBlockComponentBuilder(
-        editorState: editorState,
         configuration: BlockComponentConfiguration(
           textStyle: (_) => const TextStyle(
             fontFamily: 'RobotoMono',
@@ -115,6 +117,14 @@ class _EditorState extends State<Editor> {
           ),
         ),
       ),
+      VideoBlockKeys.type: VideoBlockComponentBuilder(
+        showMenu: true,
+        menuBuilder: (Node node, VideoBlockComponentState state) => Positioned(
+          top: 0,
+          right: 10,
+          child: VideoBlockMenu(node: node, state: state),
+        ),
+      ),
     };
   }
 
@@ -136,6 +146,9 @@ class _EditorState extends State<Editor> {
       ),
       body: AppFlowyEditor(
         editorState: editorState,
+        editorStyle: PlatformExtension.isMobile
+            ? const EditorStyle.mobile()
+            : const EditorStyle.desktop(),
         characterShortcutEvents: shortcutEvents,
         commandShortcutEvents: commandEvents,
         blockComponentBuilders: blockComponentBuilders,
@@ -151,6 +164,13 @@ const _initialDocumentData = """{
       {
         "type": "paragraph",
         "data": {"delta": []}
+      },
+      {
+        "type": "video",
+        "data": {
+          "url": "https://ia600507.us.archive.org/13/items/09--0125--cars2-Trailer/Tumbacof-Cars2Trailer894_512kb.mp4",
+          "width": 320.0
+        }
       },
       {
         "type": "code",
