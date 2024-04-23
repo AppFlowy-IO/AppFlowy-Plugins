@@ -6,8 +6,6 @@ The Video Block relies on the [Media Kit]() package, thus all setup that is requ
 
 Depending on what platforms you intend to use Video Block with, you will have to enable these permissions for each platform.
 
-Note that if you don't support videos from file, you can leave smoe out.
-
 ### Android
 
 You have to add these permissions to your `android/app/src/main/AndroidManifest.xml` (Android Manifest):
@@ -38,9 +36,7 @@ You have to add these permissions to your `android/app/src/main/AndroidManifest.
 </manifest>
 ```
 
-_Note: You don't need to be able to read media/external storage if you don't intend to allow for file reads._
-
-If you do need to read from file, you will additionally have to handle requesting permission from the user to do so. We recommend to use the package [Permission Handler]() to achieve this.
+If you do need to read from file, you will additionally have to handle requesting permission from the user to do so. We recommend to use the package [Permission Handler](https://pub.dev/packages/permission_handler) to achieve this.
 
 See example:
 

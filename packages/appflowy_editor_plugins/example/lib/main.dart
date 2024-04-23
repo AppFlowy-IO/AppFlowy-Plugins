@@ -168,7 +168,7 @@ const _initialDocumentData = """{
       {
         "type": "video",
         "data": {
-          "url": "https://file-examples.com/storage/fee868065066261f19c04c3/2017/04/file_example_MP4_480_1_5MG.mp4",
+          "url": "https://ia600507.us.archive.org/13/items/09--0125--cars2-Trailer/Tumbacof-Cars2Trailer894_512kb.mp4",
           "width": 320.0
         }
       },
