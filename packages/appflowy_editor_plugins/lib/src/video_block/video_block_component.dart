@@ -13,16 +13,15 @@ class VideoBlockKit {
   static void ensureInitialized() => MediaKit.ensureInitialized();
 }
 
-Node videoBlockNode({
-  String? src,
-  double? width,
-}) {
+Node videoBlockNode({String? src, double? width}) {
   final attributes = {
     VideoBlockKeys.url: src,
     VideoBlockKeys.width: width ?? 320,
   };
   return Node(type: VideoBlockKeys.type, attributes: attributes);
 }
+
+typedef VideoBlockWidgetBuilder = Widget Function(Node);
 
 // Code block menu item for selection
 SelectionMenuItem videoBlockItem(
@@ -74,12 +73,26 @@ class VideoBlockComponentBuilder extends BlockComponentBuilder {
     super.configuration,
     this.showMenu = false,
     this.menuBuilder,
+    this.placeholderBuilder,
+    this.errorBuilder,
   });
 
   /// Whether to show the menu of this block component.
   final bool showMenu;
 
   final VideoBlockComponentMenuBuilder? menuBuilder;
+
+  /// The placeholder will be rendered when the src is null or empty.
+  ///
+  /// If the placeholder is null, a simple text widget will be rendered.
+  ///
+  final VideoBlockWidgetBuilder? placeholderBuilder;
+
+  /// The error widget will be rendered when the src is not a valid URL.
+  ///
+  /// It is recommended to build your own validation layer for the src.
+  ///
+  final VideoBlockWidgetBuilder? errorBuilder;
 
   @override
   BlockComponentWidget build(BlockComponentContext blockComponentContext) {
@@ -92,6 +105,8 @@ class VideoBlockComponentBuilder extends BlockComponentBuilder {
       actionBuilder: (_, state) => actionBuilder(blockComponentContext, state),
       showMenu: showMenu,
       menuBuilder: menuBuilder,
+      placeholderBuilder: placeholderBuilder,
+      errorBuilder: errorBuilder,
     );
   }
 
@@ -108,12 +123,26 @@ class VideoBlockComponent extends BlockComponentStatefulWidget {
     super.configuration = const BlockComponentConfiguration(),
     this.showMenu = false,
     this.menuBuilder,
+    this.placeholderBuilder,
+    this.errorBuilder,
   });
 
   /// Whether to show the menu of this block component.
   final bool showMenu;
 
   final VideoBlockComponentMenuBuilder? menuBuilder;
+
+  /// The placeholder will be rendered when the src is null or empty.
+  ///
+  /// If the placeholder is null, a simple text widget will be rendered.
+  ///
+  final VideoBlockWidgetBuilder? placeholderBuilder;
+
+  /// The error widget will be rendered when the src is not a valid URL.
+  ///
+  /// It is recommended to build your own validation layer for the src.
+  ///
+  final VideoBlockWidgetBuilder? errorBuilder;
 
   @override
   State<VideoBlockComponent> createState() => VideoBlockComponentState();
@@ -157,6 +186,25 @@ class VideoBlockComponentState extends State<VideoBlockComponent>
   }
 
   @override
+  void didUpdateWidget(covariant VideoBlockComponent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final src = node.attributes[VideoBlockKeys.url];
+
+    if (src == null || src.isEmpty || !_checkIfURLIsValid(src)) {
+      return;
+    }
+
+    if (player.state.playlist.medias.isEmpty ||
+        player.state.playlist.medias.first.uri != src) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        player
+          ..open(Media(src))
+          ..pause();
+      });
+    }
+  }
+
+  @override
   void dispose() {
     player.dispose();
     super.dispose();
@@ -175,10 +223,14 @@ class VideoBlockComponentState extends State<VideoBlockComponent>
         MediaQuery.of(context).size.width;
 
     Widget child;
-    if (src.isEmpty) {
-      child = const Text('Placeholder');
+    if (src == null || src.isEmpty) {
+      child =
+          widget.placeholderBuilder?.call(node) ?? const Text('Placeholder');
     } else if (!_checkIfURLIsValid(src)) {
-      child = const Text('Unsupported source');
+      // If you don't have validation for the source, the default validation might fail.
+      // You can use the [VideoBlockComponent.errorBuilder] to replace this.
+      child =
+          widget.errorBuilder?.call(node) ?? const Text('Unsupported source');
     } else {
       child = ResizableVidePlayer(
         src: src,
@@ -225,7 +277,7 @@ class VideoBlockComponentState extends State<VideoBlockComponent>
             builder: (_, value, child) => Stack(
               children: [
                 child!,
-                if (value && src.isNotEmpty == true)
+                if (value && src != null && src.isNotEmpty == true)
                   widget.menuBuilder!(widget.node, this),
               ],
             ),
@@ -291,11 +343,8 @@ class VideoBlockComponentState extends State<VideoBlockComponent>
   }
 
   @override
-  Selection getSelectionInRange(Offset start, Offset end) => Selection.single(
-        path: widget.node.path,
-        startOffset: 0,
-        endOffset: 1,
-      );
+  Selection getSelectionInRange(Offset start, Offset end) =>
+      Selection.single(path: widget.node.path, startOffset: 0, endOffset: 1);
 
   @override
   Offset localToGlobal(
@@ -305,11 +354,7 @@ class VideoBlockComponentState extends State<VideoBlockComponent>
       _renderBox!.localToGlobal(offset);
 
   bool _checkIfURLIsValid(dynamic url) {
-    if (url is! String) {
-      return false;
-    }
-
-    if (url.isEmpty) {
+    if (url == null || url is! String || url.isEmpty) {
       return false;
     }
 

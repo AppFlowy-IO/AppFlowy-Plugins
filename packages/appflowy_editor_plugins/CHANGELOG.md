@@ -1,3 +1,7 @@
+## 0.0.3+2
+
+- Add placeholder and error widget builders to Video Block
+
 ## 0.0.3
 
 - Add base video block plugin
