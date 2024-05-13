@@ -1,3 +1,7 @@
+## 0.0.5
+
+- Fix a possibly critical bug with the editorState logic in the Code Block component
+
 ## 0.0.4
 
 - Add placeholder and error widget builders to Video Block
