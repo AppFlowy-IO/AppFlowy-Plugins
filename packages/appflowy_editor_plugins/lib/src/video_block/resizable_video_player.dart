@@ -17,6 +17,8 @@ class ResizableVidePlayer extends StatefulWidget {
     required this.width,
     required this.alignment,
     required this.controller,
+    this.onLongPress,
+    this.onDoubleTap,
   });
 
   final String src;
@@ -25,6 +27,8 @@ class ResizableVidePlayer extends StatefulWidget {
   final double width;
   final Alignment alignment;
   final VideoController controller;
+  final VoidCallback? onLongPress;
+  final VoidCallback? onDoubleTap;
 
   @override
   State<ResizableVidePlayer> createState() => _ResizableVidePlayerState();
@@ -61,12 +65,16 @@ class _ResizableVidePlayerState extends State<ResizableVidePlayer> {
           onExit: (_) => setState(() => onFocus = false),
           child: Stack(
             children: [
-              Video(
-                controls: (state) => AdaptiveVideoControls(state),
-                controller: widget.controller,
-                width: 1080,
-                height: 720,
-                wakelock: false,
+              GestureDetector(
+                onLongPress: widget.onLongPress,
+                onDoubleTap: widget.onDoubleTap,
+                child: Video(
+                  controls: (state) => AdaptiveVideoControls(state),
+                  controller: widget.controller,
+                  width: 1080,
+                  height: 720,
+                  wakelock: false,
+                ),
               ),
               _buildEdgeGesture(
                 context,
