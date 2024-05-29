@@ -147,8 +147,9 @@ class LinkPreviewBlockComponentState extends State<LinkPreviewBlockComponent>
     parser = LinkPreviewParser(url: url, cache: widget.cache);
     future = parser.start();
 
-    future.then((_) =>
-        WidgetsBinding.instance.addPostFrameCallback((_) => _updateNode()));
+    future.then(
+      (_) => WidgetsBinding.instance.addPostFrameCallback((_) => _updateNode()),
+    );
   }
 
   void _updateNode() {
