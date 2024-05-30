@@ -286,7 +286,7 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
   Node get node => widget.node;
 
   @override
-  EditorState get editorState => context.read<EditorState>();
+  late EditorState editorState;
 
   final scrollController = ScrollController();
 
@@ -313,6 +313,7 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
   @override
   void initState() {
     super.initState();
+    editorState = context.read<EditorState>();
     editorState.selectionService.registerGestureInterceptor(interceptor);
     editorState.selectionNotifier.addListener(calculateScrollPosition);
     transactionSubscription = editorState.transactionStream.listen((event) {
@@ -320,6 +321,17 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
         calculateScrollPosition();
       }
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    editorState.selectionService.currentSelection
+        .removeListener(calculateScrollPosition);
+    editorState.selectionService.unregisterGestureInterceptor(_interceptorKey);
+
+    editorState = context.read<EditorState>();
   }
 
   @override

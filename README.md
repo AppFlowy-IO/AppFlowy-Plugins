@@ -14,6 +14,8 @@ Looking for a plugin but cannot find it on the list? Submit a [Plugin request](h
 
 To make it easier to manage a federated package approach, we use [Melos](https://pub.dev/packages/melos). If you need to develop across multiple packages, you can bootstrap melos by running `melos bootstrap`.
 
+To setup the `melos` CLI and make it globally available, run this command: `dart pub global activate melos`
+
 Scripts available:
 
 - `melos run analyze`: Run `dart analyze .` in all packages.
