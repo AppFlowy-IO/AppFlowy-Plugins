@@ -9,6 +9,50 @@ import 'package:media_kit_video/media_kit_video.dart';
 import 'package:provider/provider.dart';
 import 'package:string_validator/string_validator.dart';
 
+class VideoBlockConfiguration {
+  const VideoBlockConfiguration({
+    this.vo,
+    this.hwdec,
+    this.enableHardwareAcceleration = true,
+    this.androidAttachSurfaceAfterVideoParameters,
+  });
+
+  /// Sets the [`--vo`](https://mpv.io/manual/stable/#options-vo) property on native backend.
+  ///
+  /// Default: Platform specific.
+  /// * Windows, GNU/Linux, macOS & iOS: `libmpv`
+  /// * Android: `gpu`
+  final String? vo;
+
+  /// Sets the [`--hwdec`](https://mpv.io/manual/stable/#options-hwdec) property on native backend.
+  ///
+  /// Default: Platform specific.
+  /// * Windows, GNU/Linux, macOS & iOS : `auto`
+  /// * Android: `auto-safe`
+  final String? hwdec;
+
+  /// Whether to enable hardware acceleration.
+  ///
+  /// Default: `true`
+  final bool enableHardwareAcceleration;
+
+  /// Whether to attach `android.view.Surface` after video parameters are known.
+  ///
+  /// Default:
+  /// * [vo] == gpu : `true`
+  /// * [vo] != gpu : `false`
+  final bool? androidAttachSurfaceAfterVideoParameters;
+
+  VideoControllerConfiguration toControllerConfig() =>
+      VideoControllerConfiguration(
+        vo: vo,
+        hwdec: hwdec,
+        enableHardwareAcceleration: enableHardwareAcceleration,
+        androidAttachSurfaceAfterVideoParameters:
+            androidAttachSurfaceAfterVideoParameters,
+      );
+}
+
 typedef VoidVideoCallback = void Function(BuildContext, Node, EditorState);
 
 class VideoBlockKit {
@@ -79,6 +123,7 @@ class VideoBlockComponentBuilder extends BlockComponentBuilder {
     this.errorBuilder,
     this.onLongPress,
     this.onDoubleTap,
+    this.videoConfiguration = const VideoBlockConfiguration(),
   });
 
   /// Whether to show the menu of this block component.
@@ -112,6 +157,12 @@ class VideoBlockComponentBuilder extends BlockComponentBuilder {
   ///
   final VoidVideoCallback? onDoubleTap;
 
+  /// The [VideoControllerConfiguration] controls certain settings
+  /// related to the media player, such as but not limited to:
+  /// - HWDEC Setting
+  /// - Hardware Acceleration
+  final VideoBlockConfiguration videoConfiguration;
+
   @override
   BlockComponentWidget build(BlockComponentContext blockComponentContext) {
     final node = blockComponentContext.node;
@@ -127,6 +178,7 @@ class VideoBlockComponentBuilder extends BlockComponentBuilder {
       errorBuilder: errorBuilder,
       onLongPress: onLongPress,
       onDoubleTap: onDoubleTap,
+      videoConfiguration: videoConfiguration,
     );
   }
 
@@ -147,6 +199,7 @@ class VideoBlockComponent extends BlockComponentStatefulWidget {
     this.errorBuilder,
     this.onLongPress,
     this.onDoubleTap,
+    this.videoConfiguration = const VideoBlockConfiguration(),
   });
 
   /// Whether to show the menu of this block component.
@@ -179,6 +232,8 @@ class VideoBlockComponent extends BlockComponentStatefulWidget {
   /// available as on Desktop.
   ///
   final VoidVideoCallback? onDoubleTap;
+
+  final VideoBlockConfiguration videoConfiguration;
 
   @override
   State<VideoBlockComponent> createState() => VideoBlockComponentState();
@@ -204,7 +259,10 @@ class VideoBlockComponentState extends State<VideoBlockComponent>
   bool preventClose = false;
 
   late final player = Player();
-  late final controller = VideoController(player);
+  late final controller = VideoController(
+    player,
+    configuration: widget.videoConfiguration.toControllerConfig(),
+  );
 
   @override
   void initState() {
