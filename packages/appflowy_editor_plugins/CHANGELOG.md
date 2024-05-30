@@ -1,3 +1,7 @@
+## 0.0.7
+
+- Support providing options for HWDEC and Hardware Acceleration for the Video Block player
+
 ## 0.0.6
 
 - Improve Video Block component
