@@ -299,7 +299,11 @@ class VideoBlockComponentState extends State<VideoBlockComponent>
       } else {
         child = MouseRegion(
           onEnter: (_) => showActionsNotifier.value = true,
-          onExit: (_) => showActionsNotifier.value = false,
+          onExit: (_) {
+            if (!preventClose) {
+              showActionsNotifier.value = false;
+            }
+          },
           hitTestBehavior: HitTestBehavior.opaque,
           opaque: false,
           child: ValueListenableBuilder<bool>(
