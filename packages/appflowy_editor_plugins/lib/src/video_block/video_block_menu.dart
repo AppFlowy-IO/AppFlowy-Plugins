@@ -168,14 +168,14 @@ class _AlignButtonState extends State<_AlignButton> {
   }
 
   void preventMenuClose() {
-    widget.state.alwaysShowMenu = true;
+    widget.state.preventClose = true;
     editorState.service.selectionService.registerGestureInterceptor(
       gestureInterceptor,
     );
   }
 
   void allowMenuClose() {
-    widget.state.alwaysShowMenu = false;
+    widget.state.preventClose = false;
     editorState.service.selectionService.unregisterGestureInterceptor(
       interceptorKey,
     );
