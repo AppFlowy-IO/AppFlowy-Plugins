@@ -201,6 +201,8 @@ class VideoBlockComponentState extends State<VideoBlockComponent>
 
   late final bool _alwaysShowMenu;
 
+  bool preventClose = false;
+
   late final player = Player();
   late final controller = VideoController(player);
 
@@ -287,7 +289,7 @@ class VideoBlockComponentState extends State<VideoBlockComponent>
     }
 
     if (widget.showMenu && widget.menuBuilder != null) {
-      if (_alwaysShowMenu) {
+      if (_alwaysShowMenu || preventClose) {
         child = Stack(
           children: [
             child,
