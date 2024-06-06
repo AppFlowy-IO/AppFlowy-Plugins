@@ -26,7 +26,7 @@ dependency_overrides:
   appflowy_editor:
     git:
       url: https://github.com/AppFlowy-IO/appflowy-editor.git
-      ref: "6718ae7"
+      ref: "6ae9159"
 
 flutter:
   uses-material-design: true

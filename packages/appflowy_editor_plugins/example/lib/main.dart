@@ -8,7 +8,6 @@ import 'package:appflowy_editor_plugins/appflowy_editor_plugins.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  VideoBlockKit.ensureInitialized();
 
   runApp(const AppWidget());
 }
@@ -115,14 +114,6 @@ class _EditorState extends State<Editor> {
               ),
             ),
           ),
-        ),
-      ),
-      VideoBlockKeys.type: VideoBlockComponentBuilder(
-        showMenu: true,
-        menuBuilder: (Node node, VideoBlockComponentState state) => Positioned(
-          top: 0,
-          right: 10,
-          child: VideoBlockMenu(node: node, state: state),
         ),
       ),
     };
