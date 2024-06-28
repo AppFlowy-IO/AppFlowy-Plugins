@@ -9,6 +9,8 @@ import 'package:media_kit_video/media_kit_video.dart';
 import 'package:provider/provider.dart';
 import 'package:string_validator/string_validator.dart';
 
+typedef VoidVideoCallback = void Function(BuildContext, Node, EditorState);
+
 class VideoBlockKit {
   static void ensureInitialized() => MediaKit.ensureInitialized();
 }
@@ -75,6 +77,8 @@ class VideoBlockComponentBuilder extends BlockComponentBuilder {
     this.menuBuilder,
     this.placeholderBuilder,
     this.errorBuilder,
+    this.onLongPress,
+    this.onDoubleTap,
   });
 
   /// Whether to show the menu of this block component.
@@ -94,6 +98,20 @@ class VideoBlockComponentBuilder extends BlockComponentBuilder {
   ///
   final VideoBlockWidgetBuilder? errorBuilder;
 
+  /// A callback that once the video player is long pressed, will be invoked.
+  ///
+  /// This is especially useful for Mobile, where the context menu is not as easily
+  /// available as on Desktop.
+  ///
+  final VoidVideoCallback? onLongPress;
+
+  /// A callback that once the video player is double tapped, will be invoked.
+  ///
+  /// This is especially useful for Mobile, where the context menu is not as easily
+  /// available as on Desktop.
+  ///
+  final VoidVideoCallback? onDoubleTap;
+
   @override
   BlockComponentWidget build(BlockComponentContext blockComponentContext) {
     final node = blockComponentContext.node;
@@ -107,6 +125,8 @@ class VideoBlockComponentBuilder extends BlockComponentBuilder {
       menuBuilder: menuBuilder,
       placeholderBuilder: placeholderBuilder,
       errorBuilder: errorBuilder,
+      onLongPress: onLongPress,
+      onDoubleTap: onDoubleTap,
     );
   }
 
@@ -125,6 +145,8 @@ class VideoBlockComponent extends BlockComponentStatefulWidget {
     this.menuBuilder,
     this.placeholderBuilder,
     this.errorBuilder,
+    this.onLongPress,
+    this.onDoubleTap,
   });
 
   /// Whether to show the menu of this block component.
@@ -143,6 +165,20 @@ class VideoBlockComponent extends BlockComponentStatefulWidget {
   /// It is recommended to build your own validation layer for the src.
   ///
   final VideoBlockWidgetBuilder? errorBuilder;
+
+  /// A callback that once the video player is long pressed, will be invoked.
+  ///
+  /// This is especially useful for Mobile, where the context menu is not as easily
+  /// available as on Desktop.
+  ///
+  final VoidVideoCallback? onLongPress;
+
+  /// A callback that once the video player is double tapped, will be invoked.
+  ///
+  /// This is especially useful for Mobile, where the context menu is not as easily
+  /// available as on Desktop.
+  ///
+  final VoidVideoCallback? onDoubleTap;
 
   @override
   State<VideoBlockComponent> createState() => VideoBlockComponentState();
@@ -163,7 +199,9 @@ class VideoBlockComponentState extends State<VideoBlockComponent>
 
   final showActionsNotifier = ValueNotifier<bool>(false);
 
-  bool alwaysShowMenu = false;
+  late final bool _alwaysShowMenu;
+
+  bool preventClose = false;
 
   late final player = Player();
   late final controller = VideoController(player);
@@ -171,25 +209,21 @@ class VideoBlockComponentState extends State<VideoBlockComponent>
   @override
   void initState() {
     super.initState();
+    _alwaysShowMenu = PlatformExtension.isMobile;
+
     final src = node.attributes[VideoBlockKeys.url];
     if (src == null || src.isEmpty || !_checkIfURLIsValid(src)) {
       return;
     }
 
-    player
-      ..open(Media(src))
-      ..pause();
-
-    if (PlatformExtension.isMobile) {
-      alwaysShowMenu = true;
-    }
+    player.open(Media(src), play: false);
   }
 
   @override
   void didUpdateWidget(covariant VideoBlockComponent oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final src = node.attributes[VideoBlockKeys.url];
 
+    final src = node.attributes[VideoBlockKeys.url];
     if (src == null || src.isEmpty || !_checkIfURLIsValid(src)) {
       return;
     }
@@ -197,9 +231,7 @@ class VideoBlockComponentState extends State<VideoBlockComponent>
     if (player.state.playlist.medias.isEmpty ||
         player.state.playlist.medias.first.uri != src) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        player
-          ..open(Media(src))
-          ..pause();
+        player.open(Media(src), play: false);
       });
     }
   }
@@ -238,6 +270,8 @@ class VideoBlockComponentState extends State<VideoBlockComponent>
         width: width,
         alignment: alignment,
         controller: controller,
+        onLongPress: () => widget.onLongPress?.call(context, node, editorState),
+        onDoubleTap: () => widget.onDoubleTap?.call(context, node, editorState),
         onResize: (width) {
           final transaction = editorState.transaction
             ..updateNode(node, {VideoBlockKeys.width: width});
@@ -255,18 +289,18 @@ class VideoBlockComponentState extends State<VideoBlockComponent>
     }
 
     if (widget.showMenu && widget.menuBuilder != null) {
-      if (alwaysShowMenu) {
+      if (_alwaysShowMenu || preventClose) {
         child = Stack(
           children: [
             child,
-            if (src.isNotEmpty == true) widget.menuBuilder!(node, this),
+            if (src?.isNotEmpty == true) widget.menuBuilder!(node, this),
           ],
         );
       } else {
         child = MouseRegion(
           onEnter: (_) => showActionsNotifier.value = true,
           onExit: (_) {
-            if (!alwaysShowMenu) {
+            if (!preventClose) {
               showActionsNotifier.value = false;
             }
           },

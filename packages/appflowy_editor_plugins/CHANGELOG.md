@@ -1,3 +1,9 @@
+## 0.0.6
+
+- Improve Video Block component
+- Add callback options to Video Block component for enhanced mobile support
+- Add preventClose to Video Block to persist menu
+
 ## 0.0.5
 
 - Fix a possibly critical bug with the editorState logic in the Code Block component
