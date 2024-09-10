@@ -1,6 +1,5 @@
 name: example
 description: "Example application for AppFlowy Editor Plugins."
-
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
@@ -11,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  appflowy_editor:
+  appflowy_editor: 
 
   appflowy_editor_plugins:
     path: ../
@@ -26,7 +25,7 @@ dependency_overrides:
   appflowy_editor:
     git:
       url: https://github.com/AppFlowy-IO/appflowy-editor.git
-      ref: "6718ae7"
+      ref: "b5da6e4"
 
 flutter:
   uses-material-design: true
