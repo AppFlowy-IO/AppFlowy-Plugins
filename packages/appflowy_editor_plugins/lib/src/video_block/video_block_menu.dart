@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-
 import 'package:appflowy_editor/appflowy_editor.dart';
 import 'package:appflowy_editor_plugins/appflowy_editor_plugins.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:universal_platform/universal_platform.dart';
 
 const _leftAlignKey = 'left';
 const _centerAlignKey = 'center';
@@ -162,7 +162,7 @@ class _AlignButtonState extends State<_AlignButton> {
     transaction.updateNode(widget.node, {VideoBlockKeys.alignment: align});
     editorState.apply(transaction);
 
-    if (!PlatformExtension.isMobile) {
+    if (!UniversalPlatform.isMobile) {
       allowMenuClose();
     }
   }

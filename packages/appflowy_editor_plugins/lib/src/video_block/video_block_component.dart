@@ -1,13 +1,13 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart';
-
 import 'package:appflowy_editor/appflowy_editor.dart';
 import 'package:appflowy_editor_plugins/src/video_block/resizable_video_player.dart';
+import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:provider/provider.dart';
 import 'package:string_validator/string_validator.dart';
+import 'package:universal_platform/universal_platform.dart';
 
 typedef VoidVideoCallback = void Function(BuildContext, Node, EditorState);
 
@@ -209,7 +209,7 @@ class VideoBlockComponentState extends State<VideoBlockComponent>
   @override
   void initState() {
     super.initState();
-    _alwaysShowMenu = PlatformExtension.isMobile;
+    _alwaysShowMenu = UniversalPlatform.isMobile;
 
     final src = node.attributes[VideoBlockKeys.url];
     if (src == null || src.isEmpty || !_checkIfURLIsValid(src)) {
