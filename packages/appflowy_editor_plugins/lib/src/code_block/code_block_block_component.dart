@@ -1,15 +1,15 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-
 import 'package:appflowy_editor/appflowy_editor.dart';
 import 'package:appflowy_editor_plugins/src/code_block/code_block_actions.dart';
 import 'package:appflowy_editor_plugins/src/code_block/code_block_localization.dart';
 import 'package:appflowy_editor_plugins/src/code_block/code_block_style.dart';
 import 'package:appflowy_editor_plugins/src/utils/string_ext.dart';
+import 'package:flutter/material.dart';
 import 'package:highlight/highlight.dart' as highlight;
 import 'package:highlight/languages/all.dart';
 import 'package:provider/provider.dart';
+import 'package:universal_platform/universal_platform.dart';
 
 import 'code_block_themes.dart';
 
@@ -419,7 +419,7 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
 
     if (widget.actionWrapperBuilder != null) {
       child = widget.actionWrapperBuilder!(node, editorState, child);
-    } else if (PlatformExtension.isDesktopOrWeb) {
+    } else if (UniversalPlatform.isDesktopOrWeb) {
       if (widget.showActions && widget.actionBuilder != null) {
         child = BlockComponentActionWrapper(
           node: widget.node,
