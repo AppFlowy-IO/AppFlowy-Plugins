@@ -10,10 +10,12 @@ dependencies:
   flutter:
     sdk: flutter
 
-  appflowy_editor: 
+  appflowy_editor:
 
   appflowy_editor_plugins:
     path: ../
+
+  universal_platform: ^1.1.0
 
 dev_dependencies:
   flutter_test:
@@ -25,7 +27,7 @@ dependency_overrides:
   appflowy_editor:
     git:
       url: https://github.com/AppFlowy-IO/appflowy-editor.git
-      ref: "b5da6e4"
+      ref: "b888202"
 
 flutter:
   uses-material-design: true

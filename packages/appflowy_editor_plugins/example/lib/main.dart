@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 import 'package:appflowy_editor/appflowy_editor.dart';
 import 'package:appflowy_editor_plugins/appflowy_editor_plugins.dart';
+import 'package:universal_platform/universal_platform.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -146,7 +147,7 @@ class _EditorState extends State<Editor> {
       ),
       body: AppFlowyEditor(
         editorState: editorState,
-        editorStyle: PlatformExtension.isMobile
+        editorStyle: UniversalPlatform.isMobile
             ? const EditorStyle.mobile()
             : const EditorStyle.desktop(),
         characterShortcutEvents: shortcutEvents,
