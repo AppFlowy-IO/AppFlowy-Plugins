@@ -1,7 +1,6 @@
-import 'package:flutter/material.dart';
-
 import 'package:appflowy_editor/appflowy_editor.dart';
 import 'package:appflowy_editor_plugins/appflowy_editor_plugins.dart';
+import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class LinkPreviewBlockKeys {
@@ -83,8 +82,8 @@ class LinkPreviewBlockComponentBuilder extends BlockComponentBuilder {
   }
 
   @override
-  bool validate(Node node) =>
-      node.attributes[LinkPreviewBlockKeys.url]!.isNotEmpty;
+  BlockComponentValidate get validate =>
+      (node) => node.attributes[LinkPreviewBlockKeys.url]!.isNotEmpty;
 }
 
 class LinkPreviewBlockComponent extends BlockComponentStatefulWidget {

@@ -1,6 +1,5 @@
-import 'package:flutter/rendering.dart';
-
 import 'package:appflowy_editor_plugins/appflowy_editor_plugins.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart';
 import 'package:flutter_link_previewer/flutter_link_previewer.dart';
 
@@ -50,7 +49,7 @@ class LinkPreviewParser {
         );
       }
       metadata = LinkPreviewData.fromPreviewData(await getPreviewData(url));
-      cache?.set(url, metadata!);
+      await cache?.set(url, metadata!);
     } catch (e, s) {
       debugPrint('$e\n$s');
       metadata = null;
