@@ -23,6 +23,7 @@ linter:
     - always_declare_return_types
 
     - sort_constructors_first
+    - unawaited_futures
 
 errors:
   invalid_annotation_target: ignore

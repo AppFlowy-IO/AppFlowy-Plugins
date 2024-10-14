@@ -25,7 +25,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  appflowy_editor: ^3.3.0
+  appflowy_editor: ^4.0.0
   provider: ^6.1.2
 
   # Link Preview Plugin
@@ -40,7 +40,4 @@ dependencies:
   universal_platform: ^1.1.0
 
 dev_dependencies:
-  flutter_lints: ^3.0.2
-
-# The following section is specific to Flutter packages.
-flutter:
+  flutter_lints: ^4.0.0

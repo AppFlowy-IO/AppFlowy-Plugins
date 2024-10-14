@@ -187,7 +187,7 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
   }
 
   @override
-  bool validate(Node node) => node.delta != null;
+  BlockComponentValidate get validate => (node) => node.delta != null;
 }
 
 /// A widget representing a code block component.
