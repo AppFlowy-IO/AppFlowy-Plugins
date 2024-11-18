@@ -150,7 +150,6 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
     this.languagePickerBuilder,
     this.copyButtonBuilder,
     this.localizations = const CodeBlockLocalizations(),
-    this.showLineNumbers = true,
   });
 
   final EdgeInsets padding;
@@ -164,7 +163,6 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
   final CodeBlockLanguagePickerBuilder? languagePickerBuilder;
   final CodeBlockCopyBuilder? copyButtonBuilder;
   final CodeBlockLocalizations localizations;
-  final bool showLineNumbers;
 
   @override
   BlockComponentWidget build(BlockComponentContext blockComponentContext) {
@@ -182,7 +180,6 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
       actions: actions,
       copyButtonBuilder: copyButtonBuilder,
       localizations: localizations,
-      showLineNumbers: showLineNumbers,
     );
   }
 
@@ -209,7 +206,6 @@ class CodeBlockComponentWidget extends BlockComponentStatefulWidget {
     this.languagePickerBuilder,
     this.copyButtonBuilder,
     this.localizations = const CodeBlockLocalizations(),
-    this.showLineNumbers = true,
   });
 
   final EdgeInsets padding;
@@ -254,8 +250,6 @@ class CodeBlockComponentWidget extends BlockComponentStatefulWidget {
   final CodeBlockCopyBuilder? copyButtonBuilder;
 
   final CodeBlockLocalizations localizations;
-
-  final bool showLineNumbers;
 
   @override
   State<CodeBlockComponentWidget> createState() =>
@@ -350,13 +344,15 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
       layoutDirection: Directionality.maybeOf(context),
     );
 
+    final style = widget.style ?? const CodeBlockStyle();
+
     Widget child = MouseRegion(
       onEnter: (_) => setState(() => isHovering = true),
       onExit: (_) => setState(() => isHovering = false),
       child: DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(8.0)),
-          color: widget.style?.backgroundColor ??
+          color: style.backgroundColor ??
               Theme.of(context).colorScheme.secondaryContainer,
         ),
         child: Column(
@@ -391,7 +387,7 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
                         node: node,
                         onCopy: widget.actions.onCopy!,
                         localizations: widget.localizations,
-                        foregroundColor: widget.style?.foregroundColor,
+                        foregroundColor: style.foregroundColor,
                       ),
                     ] else if (widget.copyButtonBuilder != null) ...[
                       widget.copyButtonBuilder!(editorState, node),
@@ -400,7 +396,7 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
                 ),
               ),
             ),
-            _buildCodeBlock(context, textDirection),
+            _buildCodeBlock(context, style, textDirection),
           ],
         ),
       ),
@@ -432,7 +428,11 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
     return child;
   }
 
-  Widget _buildCodeBlock(BuildContext context, TextDirection textDirection) {
+  Widget _buildCodeBlock(
+    BuildContext context,
+    CodeBlockStyle style,
+    TextDirection textDirection,
+  ) {
     final isLightMode = Theme.of(context).brightness == Brightness.light;
     final delta = node.delta ?? Delta();
     final content = delta.toPlainText();
@@ -453,16 +453,31 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
     final codeTextSpans = _convert(codeNodes, isLightMode: isLightMode);
     final linesOfCode = delta.toPlainText().split('\n').length;
 
+    final child = AppFlowyRichText(
+      key: forwardKey,
+      delegate: this,
+      node: widget.node,
+      editorState: editorState,
+      placeholderText: placeholderText,
+      lineHeight: 1.5,
+      textSpanDecorator: (_) =>
+          TextSpan(style: style.textStyle, children: codeTextSpans),
+      placeholderTextSpanDecorator: (textSpan) => textSpan,
+      textDirection: textDirection,
+      cursorColor: editorState.editorStyle.cursorColor,
+      selectionColor: editorState.editorStyle.selectionColor,
+    );
+
     return Padding(
       padding: widget.padding,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (widget.showLineNumbers) ...[
+          if (style.showLineNumbers) ...[
             _LinesOfCodeNumbers(
               linesOfCode: linesOfCode,
-              textStyle: textStyle.copyWith(
-                color: widget.style?.foregroundColor ??
+              textStyle: (style.textStyle ?? textStyle).copyWith(
+                color: style.foregroundColor ??
                     Theme.of(context)
                         .colorScheme
                         .onSecondaryContainer
@@ -473,30 +488,19 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
           Flexible(
             child: Padding(
               padding: const EdgeInsets.only(top: 1),
-              child: Scrollbar(
-                controller: scrollController,
-                child: SingleChildScrollView(
-                  key: codeBlockKey,
-                  controller: scrollController,
-                  padding: const EdgeInsets.only(bottom: 16),
-                  physics: const ClampingScrollPhysics(),
-                  scrollDirection: Axis.horizontal,
-                  child: AppFlowyRichText(
-                    key: forwardKey,
-                    delegate: this,
-                    node: widget.node,
-                    editorState: editorState,
-                    placeholderText: placeholderText,
-                    lineHeight: 1.5,
-                    textSpanDecorator: (_) =>
-                        TextSpan(style: textStyle, children: codeTextSpans),
-                    placeholderTextSpanDecorator: (textSpan) => textSpan,
-                    textDirection: textDirection,
-                    cursorColor: editorState.editorStyle.cursorColor,
-                    selectionColor: editorState.editorStyle.selectionColor,
-                  ),
-                ),
-              ),
+              child: style.wrapLines
+                  ? child
+                  : Scrollbar(
+                      controller: scrollController,
+                      child: SingleChildScrollView(
+                        key: codeBlockKey,
+                        controller: scrollController,
+                        padding: const EdgeInsets.only(bottom: 16),
+                        physics: const ClampingScrollPhysics(),
+                        scrollDirection: Axis.horizontal,
+                        child: child,
+                      ),
+                    ),
             ),
           ),
         ],

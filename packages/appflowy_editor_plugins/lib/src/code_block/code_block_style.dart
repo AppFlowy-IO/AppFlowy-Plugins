@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
 
 class CodeBlockStyle {
-  CodeBlockStyle({
-    required this.backgroundColor,
-    required this.foregroundColor,
-  });
+  const CodeBlockStyle({
+    this.textStyle,
+    this.backgroundColor,
+    this.foregroundColor,
+    this.showLineNumbers = false,
+    this.wrapLines = false,
+  }) : assert(
+          !(wrapLines && showLineNumbers),
+          'showing line numbers while wrapping isn\'t currently supported',
+        );
 
-  final Color backgroundColor;
-  final Color foregroundColor;
+  final TextStyle? textStyle;
+  final Color? backgroundColor;
+  final Color? foregroundColor;
+  final bool showLineNumbers;
+  final bool wrapLines;
 }
