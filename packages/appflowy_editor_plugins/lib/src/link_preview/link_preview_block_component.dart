@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:appflowy_editor/appflowy_editor.dart';
 import 'package:appflowy_editor_plugins/appflowy_editor_plugins.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class LinkPreviewBlockKeys {
@@ -9,6 +10,8 @@ class LinkPreviewBlockKeys {
 
   static const String type = 'link_preview';
   static const String url = 'url';
+  static const String title = 'title';
+  static const String description = 'description';
 }
 
 Node linkPreviewNode({required String url}) => Node(
@@ -132,6 +135,8 @@ class LinkPreviewBlockComponentState extends State<LinkPreviewBlockComponent>
   final showActionsNotifier = ValueNotifier<bool>(false);
   bool alwaysShowMenu = false;
 
+  late final editorState = Provider.of<EditorState>(context, listen: false);
+
   @override
   void initState() {
     super.initState();
@@ -141,6 +146,34 @@ class LinkPreviewBlockComponentState extends State<LinkPreviewBlockComponent>
 
     parser = LinkPreviewParser(url: url, cache: widget.cache);
     future = parser.start();
+
+    future.then(
+      (_) => WidgetsBinding.instance.addPostFrameCallback((_) => _updateNode()),
+    );
+  }
+
+  void _updateNode() {
+    if (_hasAllAttributes() || !mounted) return;
+    final title = parser.getContent(LinkPreviewRegex.title);
+    final description = parser.getContent(LinkPreviewRegex.description);
+    final transaction = editorState.transaction
+      ..updateNode(
+        node,
+        {
+          LinkPreviewBlockKeys.url: node.attributes[LinkPreviewBlockKeys.url],
+          LinkPreviewBlockKeys.title: title ?? 'Link Preview title',
+          LinkPreviewBlockKeys.description:
+              description ?? 'Link Preview description',
+        },
+      );
+    editorState.apply(transaction);
+  }
+
+  bool _hasAllAttributes() {
+    final attributes = node.attributes;
+    return attributes[LinkPreviewBlockKeys.url] != null &&
+        attributes[LinkPreviewBlockKeys.title] != null &&
+        attributes[LinkPreviewBlockKeys.description] != null;
   }
 
   @override
