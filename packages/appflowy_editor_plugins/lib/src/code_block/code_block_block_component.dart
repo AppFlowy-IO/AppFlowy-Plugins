@@ -301,8 +301,7 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
     canPanStart: (_) => canPanStart && !isSelected,
   );
 
-  late final StreamSubscription<(TransactionTime, Transaction)>
-      transactionSubscription;
+  late final StreamSubscription<EditorTransactionValue> transactionSubscription;
 
   @override
   void initState() {
