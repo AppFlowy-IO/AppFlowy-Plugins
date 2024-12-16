@@ -24,6 +24,7 @@ final allCodeBlockLanguages = [
   'CS',
   'CSS',
   'Dart',
+  'Delphi',
   'Docker',
   'Elixir',
   'Elm',
