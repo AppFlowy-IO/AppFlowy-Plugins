@@ -476,7 +476,7 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
           if (style.showLineNumbers) ...[
             _LinesOfCodeNumbers(
               linesOfCode: linesOfCode,
-              textStyle: (style.textStyle ?? textStyle).copyWith(
+              textStyle: (style.textStyle ?? textStyleWithTextSpan()).copyWith(
                 color: style.foregroundColor ??
                     Theme.of(context)
                         .colorScheme
