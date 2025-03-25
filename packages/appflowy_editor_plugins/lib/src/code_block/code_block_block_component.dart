@@ -308,8 +308,10 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
   void initState() {
     super.initState();
     editorState = context.read<EditorState>();
-    editorState.selectionService.registerGestureInterceptor(interceptor);
-    editorState.selectionNotifier.addListener(calculateScrollPosition);
+    if (editorState.editable) {
+      editorState.selectionService.registerGestureInterceptor(interceptor);
+      editorState.selectionNotifier.addListener(calculateScrollPosition);
+    }
     transactionSubscription = editorState.transactionStream.listen((event) {
       if (event.$2.operations.any((op) => op.path.equals(node.path))) {
         calculateScrollPosition();
@@ -321,9 +323,12 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    editorState.selectionService.currentSelection
-        .removeListener(calculateScrollPosition);
-    editorState.selectionService.unregisterGestureInterceptor(_interceptorKey);
+    if (editorState.editable) {
+      editorState.selectionService.currentSelection
+          .removeListener(calculateScrollPosition);
+      editorState.selectionService
+          .unregisterGestureInterceptor(_interceptorKey);
+    }
 
     editorState = context.read<EditorState>();
   }
@@ -331,9 +336,12 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
   @override
   void dispose() {
     scrollController.dispose();
-    editorState.selectionService.currentSelection
-        .removeListener(calculateScrollPosition);
-    editorState.selectionService.unregisterGestureInterceptor(_interceptorKey);
+    if (editorState.editable) {
+      editorState.selectionService.currentSelection
+          .removeListener(calculateScrollPosition);
+      editorState.selectionService
+          .unregisterGestureInterceptor(_interceptorKey);
+    }
     transactionSubscription.cancel();
     super.dispose();
   }
