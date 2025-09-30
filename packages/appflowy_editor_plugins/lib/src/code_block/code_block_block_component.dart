@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 import 'package:universal_platform/universal_platform.dart';
 
 import 'code_block_themes.dart';
+import 'languages/zig.dart';
 
 final allCodeBlockLanguages = [
   'Assembly',
@@ -57,6 +58,8 @@ final allCodeBlockLanguages = [
   'SQL',
   'Swift',
   'TypeScript',
+  'Verilog',
+  'Vhdl',
   'Visual Basic',
   'XML',
   'YAML',
@@ -67,8 +70,7 @@ final defaultCodeBlockSupportedLanguages = allCodeBlockLanguages
     .toSet()
     .intersection(allLanguages.keys.toSet())
     .toList()
-  ..add('auto')
-  ..add('c')
+  ..addAll(['auto', 'plain text', 'c', 'zig'])
   ..sort();
 
 class CodeBlockKeys {
@@ -132,6 +134,14 @@ typedef CodeBlockLanguagePickerBuilder = Widget Function(
   VoidCallback? onMenuClose,
 });
 
+/// Used to provide a custom text span generator for the [CodeBlockComponentWidget].
+typedef CodeBlockTextSpanGenerator = TextSpan Function(
+  String code,
+  String language,
+  TextStyle? baseStyle,
+  BuildContext context,
+);
+
 /// Used to provide a custom copy button for the [CodeBlockComponentWidget].
 ///
 typedef CodeBlockCopyBuilder = Widget Function(EditorState, Node);
@@ -151,6 +161,7 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
     this.languagePickerBuilder,
     this.copyButtonBuilder,
     this.localizations = const CodeBlockLocalizations(),
+    this.textSpanGenerator,
   });
 
   final EdgeInsets padding;
@@ -164,6 +175,7 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
   final CodeBlockLanguagePickerBuilder? languagePickerBuilder;
   final CodeBlockCopyBuilder? copyButtonBuilder;
   final CodeBlockLocalizations localizations;
+  final CodeBlockTextSpanGenerator? textSpanGenerator;
 
   @override
   BlockComponentWidget build(BlockComponentContext blockComponentContext) {
@@ -207,6 +219,7 @@ class CodeBlockComponentWidget extends BlockComponentStatefulWidget {
     this.languagePickerBuilder,
     this.copyButtonBuilder,
     this.localizations = const CodeBlockLocalizations(),
+    this.textSpanGenerator,
   });
 
   final EdgeInsets padding;
@@ -251,6 +264,7 @@ class CodeBlockComponentWidget extends BlockComponentStatefulWidget {
   final CodeBlockCopyBuilder? copyButtonBuilder;
 
   final CodeBlockLocalizations localizations;
+  final CodeBlockTextSpanGenerator? textSpanGenerator;
 
   @override
   State<CodeBlockComponentWidget> createState() =>
@@ -445,20 +459,30 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
     final delta = node.delta ?? Delta();
     final content = delta.toPlainText();
 
-    final result = highlight.highlight.parse(
+    final highlightObject = highlight.highlight..registerLanguage('zig', zig);
+    final result = highlightObject.parse(
       content,
       language: language,
       autoDetection: language == null,
     );
-
     autoDetectLanguage = language ?? result.language;
 
-    final codeNodes = result.nodes;
-    if (codeNodes == null) {
-      throw Exception('Code block parse error.');
+    TextSpan textSpan;
+    final textSpanGenerator = widget.textSpanGenerator;
+    if (textSpanGenerator != null) {
+      textSpan = textSpanGenerator(
+        content,
+        autoDetectLanguage ?? 'plain text',
+        style.textStyle,
+        context,
+      );
+    } else {
+      textSpan = TextSpan(
+        style: style.textStyle,
+        children: _convert(result.nodes ?? [], isLightMode: isLightMode),
+      );
     }
 
-    final codeTextSpans = _convert(codeNodes, isLightMode: isLightMode);
     final linesOfCode = delta.toPlainText().split('\n').length;
 
     final child = AppFlowyRichText(
@@ -468,8 +492,7 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
       editorState: editorState,
       placeholderText: placeholderText,
       lineHeight: 1.5,
-      textSpanDecorator: (_) =>
-          TextSpan(style: style.textStyle, children: codeTextSpans),
+      textSpanDecorator: (_) => textSpan,
       placeholderTextSpanDecorator: (textSpan) => textSpan,
       textDirection: textDirection,
       cursorColor: editorState.editorStyle.cursorColor,

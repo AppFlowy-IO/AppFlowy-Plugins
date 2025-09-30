@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -79,7 +80,7 @@ class _EditorState extends State<Editor> {
       ...standardBlockComponentBuilderMap,
       CodeBlockKeys.type: CodeBlockComponentBuilder(
         configuration: BlockComponentConfiguration(
-          textStyle: (_) => const TextStyle(
+          textStyle: (node, {textSpan}) => const TextStyle(
             fontFamily: 'RobotoMono',
             fontSize: 14,
             height: 1.5,
@@ -137,7 +138,7 @@ class _EditorState extends State<Editor> {
       ),
       body: AppFlowyEditor(
         editorState: editorState,
-        editorStyle: PlatformExtension.isMobile
+        editorStyle: Platform.isAndroid || Platform.isIOS
             ? const EditorStyle.mobile()
             : const EditorStyle.desktop(),
         characterShortcutEvents: shortcutEvents,
