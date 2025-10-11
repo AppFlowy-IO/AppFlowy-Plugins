@@ -87,6 +87,16 @@ class CodeBlockKeys {
   ///
   /// The value is a String.
   static const String language = 'language';
+
+  /// The pin state of language in a code block.
+  ///
+  /// The value is a bool.
+  static const String pinLanguage = 'pin_language';
+
+  /// The caption of a code block.
+  ///
+  /// The value is a String.
+  static const String caption = 'caption';
 }
 
 Node codeBlockNode({
@@ -143,8 +153,10 @@ typedef CodeBlockTextSpanGenerator = TextSpan Function(
 );
 
 /// Used to provide a custom copy button for the [CodeBlockComponentWidget].
-///
 typedef CodeBlockCopyBuilder = Widget Function(EditorState, Node);
+
+/// Used to provide a custom widget.
+typedef CodeBlockWidgetBuilder = Widget Function(EditorState, Node);
 
 class CodeBlockComponentBuilder extends BlockComponentBuilder {
   CodeBlockComponentBuilder({
@@ -162,6 +174,8 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
     this.copyButtonBuilder,
     this.localizations = const CodeBlockLocalizations(),
     this.textSpanGenerator,
+    this.optionBuilder,
+    this.captionBuilder,
   });
 
   final EdgeInsets padding;
@@ -176,6 +190,8 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
   final CodeBlockCopyBuilder? copyButtonBuilder;
   final CodeBlockLocalizations localizations;
   final CodeBlockTextSpanGenerator? textSpanGenerator;
+  final CodeBlockWidgetBuilder? optionBuilder;
+  final CodeBlockWidgetBuilder? captionBuilder;
 
   @override
   BlockComponentWidget build(BlockComponentContext blockComponentContext) {
@@ -193,6 +209,8 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
       actions: actions,
       copyButtonBuilder: copyButtonBuilder,
       localizations: localizations,
+      optionBuilder: optionBuilder,
+      captionBuilder: captionBuilder,
     );
   }
 
@@ -218,6 +236,8 @@ class CodeBlockComponentWidget extends BlockComponentStatefulWidget {
     this.actionWrapperBuilder,
     this.languagePickerBuilder,
     this.copyButtonBuilder,
+    this.optionBuilder,
+    this.captionBuilder,
     this.localizations = const CodeBlockLocalizations(),
     this.textSpanGenerator,
   });
@@ -262,6 +282,8 @@ class CodeBlockComponentWidget extends BlockComponentStatefulWidget {
   /// design of your app.
   ///
   final CodeBlockCopyBuilder? copyButtonBuilder;
+  final CodeBlockWidgetBuilder? optionBuilder;
+  final CodeBlockWidgetBuilder? captionBuilder;
 
   final CodeBlockLocalizations localizations;
   final CodeBlockTextSpanGenerator? textSpanGenerator;
@@ -296,6 +318,11 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
 
   @override
   late EditorState editorState;
+
+  bool get pinLanguage =>
+      node.attributes[CodeBlockKeys.pinLanguage] as bool? ?? false;
+
+  bool get hasCaption => node.attributes[CodeBlockKeys.caption] != null;
 
   final scrollController = ScrollController();
 
@@ -367,6 +394,9 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
     );
 
     final style = widget.style ?? const CodeBlockStyle();
+    final showOptions = isHovering || isSelected || UniversalPlatform.isMobile;
+    final hasOptionBuilder = widget.optionBuilder != null;
+    final optionOpacity = showOptions ? 1.0 : 0.0;
 
     Widget child = MouseRegion(
       onEnter: (_) => setState(() => isHovering = true),
@@ -385,11 +415,11 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
             MouseRegion(
               onEnter: (_) => setState(() => canPanStart = false),
               onExit: (_) => setState(() => canPanStart = true),
-              child: Opacity(
-                opacity: isHovering || isSelected ? 1.0 : 0.0,
-                child: Row(
-                  children: [
-                    _LanguageSelector(
+              child: Row(
+                children: [
+                  Opacity(
+                    opacity: (showOptions || pinLanguage) ? 1.0 : 0.0,
+                    child: _LanguageSelector(
                       editorState: editorState,
                       language: language,
                       isSelected: isSelected,
@@ -402,20 +432,33 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
                       languagePickerBuilder: widget.languagePickerBuilder,
                       localizations: widget.localizations,
                     ),
-                    const Spacer(),
-                    if (widget.actions.onCopy != null &&
-                        widget.copyButtonBuilder == null) ...[
-                      _CopyButton(
+                  ),
+                  const Spacer(),
+                  if (hasOptionBuilder)
+                    Opacity(
+                      opacity: optionOpacity,
+                      child: widget.optionBuilder!(editorState, node),
+                    ),
+                  if (widget.actions.onCopy != null &&
+                      widget.copyButtonBuilder == null &&
+                      !hasOptionBuilder) ...[
+                    Opacity(
+                      opacity: optionOpacity,
+                      child: _CopyButton(
                         node: node,
                         onCopy: widget.actions.onCopy!,
                         localizations: widget.localizations,
                         foregroundColor: style.foregroundColor,
                       ),
-                    ] else if (widget.copyButtonBuilder != null) ...[
-                      widget.copyButtonBuilder!(editorState, node),
-                    ],
+                    ),
+                  ] else if (widget.copyButtonBuilder != null &&
+                      !hasOptionBuilder) ...[
+                    Opacity(
+                      opacity: optionOpacity,
+                      child: widget.copyButtonBuilder!(editorState, node),
+                    ),
                   ],
-                ),
+                ],
               ),
             ),
             _buildCodeBlock(context, style, textDirection),
@@ -423,6 +466,17 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
         ),
       ),
     );
+
+    if (widget.captionBuilder != null && hasCaption) {
+      child = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          child,
+          widget.captionBuilder!(editorState, node),
+        ],
+      );
+    }
 
     child = Padding(key: blockComponentKey, padding: padding, child: child);
 
