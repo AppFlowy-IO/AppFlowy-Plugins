@@ -162,10 +162,10 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
   CodeBlockComponentBuilder({
     super.configuration,
     this.padding = const EdgeInsets.only(
-      top: 20,
+      top: 38,
       left: 20,
       right: 20,
-      bottom: 34,
+      bottom: 38,
     ),
     this.styleBuilder,
     this.actions = const CodeBlockActions(),
@@ -207,7 +207,6 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
       style: styleBuilder?.call(),
       languagePickerBuilder: languagePickerBuilder,
       actions: actions,
-      copyButtonBuilder: copyButtonBuilder,
       localizations: localizations,
       optionBuilder: optionBuilder,
       captionBuilder: captionBuilder,
@@ -235,7 +234,6 @@ class CodeBlockComponentWidget extends BlockComponentStatefulWidget {
     this.actions = const CodeBlockActions(),
     this.actionWrapperBuilder,
     this.languagePickerBuilder,
-    this.copyButtonBuilder,
     this.optionBuilder,
     this.captionBuilder,
     this.localizations = const CodeBlockLocalizations(),
@@ -281,7 +279,6 @@ class CodeBlockComponentWidget extends BlockComponentStatefulWidget {
   /// consists of a simple [IconButton], with a custom button that fits the
   /// design of your app.
   ///
-  final CodeBlockCopyBuilder? copyButtonBuilder;
   final CodeBlockWidgetBuilder? optionBuilder;
   final CodeBlockWidgetBuilder? captionBuilder;
 
@@ -395,7 +392,6 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
 
     final style = widget.style ?? const CodeBlockStyle();
     final showOptions = isHovering || isSelected || UniversalPlatform.isMobile;
-    final hasOptionBuilder = widget.optionBuilder != null;
     final optionOpacity = showOptions ? 1.0 : 0.0;
 
     Widget child = MouseRegion(
@@ -407,61 +403,52 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
           color: style.backgroundColor ??
               Theme.of(context).colorScheme.secondaryContainer,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
+        child: Stack(
           textDirection: textDirection,
           children: [
-            MouseRegion(
-              onEnter: (_) => setState(() => canPanStart = false),
-              onExit: (_) => setState(() => canPanStart = true),
-              child: Row(
-                children: [
-                  Opacity(
-                    opacity: (showOptions || pinLanguage) ? 1.0 : 0.0,
-                    child: _LanguageSelector(
-                      editorState: editorState,
-                      language: language,
-                      isSelected: isSelected,
-                      onLanguageSelected: (language) {
-                        updateLanguage(language);
-                        widget.actions.onLanguageChanged?.call(language);
-                      },
-                      onMenuOpen: () => isSelected = true,
-                      onMenuClose: () => setState(() => isSelected = false),
-                      languagePickerBuilder: widget.languagePickerBuilder,
-                      localizations: widget.localizations,
-                    ),
-                  ),
-                  const Spacer(),
-                  if (hasOptionBuilder)
-                    Opacity(
-                      opacity: optionOpacity,
-                      child: widget.optionBuilder!(editorState, node),
-                    ),
-                  if (widget.actions.onCopy != null &&
-                      widget.copyButtonBuilder == null &&
-                      !hasOptionBuilder) ...[
-                    Opacity(
-                      opacity: optionOpacity,
-                      child: _CopyButton(
+            _buildCodeBlock(context, style, textDirection),
+            Positioned(
+              top: 0,
+              right: 0,
+              child: MouseRegion(
+                onEnter: (_) => setState(() => canPanStart = false),
+                onExit: (_) => setState(() => canPanStart = true),
+                child: Opacity(
+                  opacity: optionOpacity,
+                  child: widget.optionBuilder?.call(editorState, node) ??
+                      _CopyButton(
                         node: node,
                         onCopy: widget.actions.onCopy!,
                         localizations: widget.localizations,
                         foregroundColor: style.foregroundColor,
                       ),
-                    ),
-                  ] else if (widget.copyButtonBuilder != null &&
-                      !hasOptionBuilder) ...[
-                    Opacity(
-                      opacity: optionOpacity,
-                      child: widget.copyButtonBuilder!(editorState, node),
-                    ),
-                  ],
-                ],
+                ),
               ),
             ),
-            _buildCodeBlock(context, style, textDirection),
+            Positioned(
+              top: 0,
+              left: 0,
+              child: MouseRegion(
+                onEnter: (_) => setState(() => canPanStart = false),
+                onExit: (_) => setState(() => canPanStart = true),
+                child: Opacity(
+                  opacity: (showOptions || pinLanguage) ? 1.0 : 0.0,
+                  child: _LanguageSelector(
+                    editorState: editorState,
+                    language: language,
+                    isSelected: isSelected,
+                    onLanguageSelected: (language) {
+                      updateLanguage(language);
+                      widget.actions.onLanguageChanged?.call(language);
+                    },
+                    onMenuOpen: () => isSelected = true,
+                    onMenuClose: () => setState(() => isSelected = false),
+                    languagePickerBuilder: widget.languagePickerBuilder,
+                    localizations: widget.localizations,
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -828,7 +815,7 @@ class _LanguageSelectionDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return Container(
       padding: const EdgeInsets.only(left: 16),
       child: DropdownMenu<String>(
         initialSelection: language ?? 'auto',
