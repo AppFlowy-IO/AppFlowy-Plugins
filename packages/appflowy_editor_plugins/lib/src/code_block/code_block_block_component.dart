@@ -158,6 +158,9 @@ typedef CodeBlockCopyBuilder = Widget Function(EditorState, Node);
 /// Used to provide a custom widget.
 typedef CodeBlockWidgetBuilder = Widget Function(EditorState, Node);
 
+/// Used to provide a custom style for the [CodeBlockComponentWidget].
+typedef CodeBlockStyleBuilder = CodeBlockStyle Function(BlockComponentContext);
+
 class CodeBlockComponentBuilder extends BlockComponentBuilder {
   CodeBlockComponentBuilder({
     super.configuration,
@@ -179,7 +182,7 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
   });
 
   final EdgeInsets padding;
-  final CodeBlockStyle Function()? styleBuilder;
+  final CodeBlockStyleBuilder? styleBuilder;
   final CodeBlockActions actions;
   final Widget Function(
     Node node,
@@ -204,7 +207,7 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
       showActions: showActions(node),
       actionBuilder: (_, state) => actionBuilder(blockComponentContext, state),
       actionWrapperBuilder: actionWrapperBuilder,
-      style: styleBuilder?.call(),
+      style: styleBuilder?.call(blockComponentContext),
       languagePickerBuilder: languagePickerBuilder,
       actions: actions,
       localizations: localizations,
