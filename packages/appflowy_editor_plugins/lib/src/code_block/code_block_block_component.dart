@@ -179,6 +179,7 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
     this.textSpanGenerator,
     this.optionBuilder,
     this.captionBuilder,
+    this.selectionAboveBlock = false,
   });
 
   final EdgeInsets padding;
@@ -195,6 +196,7 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
   final CodeBlockTextSpanGenerator? textSpanGenerator;
   final CodeBlockWidgetBuilder? optionBuilder;
   final CodeBlockWidgetBuilder? captionBuilder;
+  final bool selectionAboveBlock;
 
   @override
   BlockComponentWidget build(BlockComponentContext blockComponentContext) {
@@ -213,6 +215,7 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
       localizations: localizations,
       optionBuilder: optionBuilder,
       captionBuilder: captionBuilder,
+      selectionAboveBlock: selectionAboveBlock,
     );
   }
 
@@ -241,6 +244,7 @@ class CodeBlockComponentWidget extends BlockComponentStatefulWidget {
     this.captionBuilder,
     this.localizations = const CodeBlockLocalizations(),
     this.textSpanGenerator,
+    this.selectionAboveBlock = false,
   });
 
   final EdgeInsets padding;
@@ -287,6 +291,7 @@ class CodeBlockComponentWidget extends BlockComponentStatefulWidget {
 
   final CodeBlockLocalizations localizations;
   final CodeBlockTextSpanGenerator? textSpanGenerator;
+  final bool selectionAboveBlock;
 
   @override
   State<CodeBlockComponentWidget> createState() =>
@@ -476,6 +481,7 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
       listenable: editorState.selectionNotifier,
       blockColor: editorState.editorStyle.selectionColor,
       supportTypes: const [BlockSelectionType.block],
+      selectionAboveBlock: widget.selectionAboveBlock,
       child: child,
     );
 
