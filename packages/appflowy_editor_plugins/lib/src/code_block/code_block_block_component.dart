@@ -158,6 +158,13 @@ typedef CodeBlockCopyBuilder = Widget Function(EditorState, Node);
 /// Used to provide a custom widget.
 typedef CodeBlockWidgetBuilder = Widget Function(EditorState, Node);
 
+/// Used to provide a custom options widget for the [CodeBlockComponentWidget].
+typedef CodeBlockOptionBuilder = Widget Function(
+  EditorState,
+  Node,
+  bool showOptions,
+);
+
 /// Used to provide a custom style for the [CodeBlockComponentWidget].
 typedef CodeBlockStyleBuilder = CodeBlockStyle Function(BlockComponentContext);
 
@@ -194,7 +201,7 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
   final CodeBlockCopyBuilder? copyButtonBuilder;
   final CodeBlockLocalizations localizations;
   final CodeBlockTextSpanGenerator? textSpanGenerator;
-  final CodeBlockWidgetBuilder? optionBuilder;
+  final CodeBlockOptionBuilder? optionBuilder;
   final CodeBlockWidgetBuilder? captionBuilder;
   final bool selectionAboveBlock;
 
@@ -286,7 +293,7 @@ class CodeBlockComponentWidget extends BlockComponentStatefulWidget {
   /// consists of a simple [IconButton], with a custom button that fits the
   /// design of your app.
   ///
-  final CodeBlockWidgetBuilder? optionBuilder;
+  final CodeBlockOptionBuilder? optionBuilder;
   final CodeBlockWidgetBuilder? captionBuilder;
 
   final CodeBlockLocalizations localizations;
@@ -323,6 +330,17 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
 
   @override
   late EditorState editorState;
+
+  @override
+  Rect getBlockRect({
+    bool shiftWithBaseOffset = false,
+  }) {
+    final childBox = blockComponentKey.currentContext?.findRenderObject();
+    if (childBox is RenderBox) {
+      return Offset.zero & childBox.size;
+    }
+    return Rect.zero;
+  }
 
   bool get pinLanguage =>
       node.attributes[CodeBlockKeys.pinLanguage] as bool? ?? false;
@@ -400,9 +418,9 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
 
     final style = widget.style ?? const CodeBlockStyle();
     final showOptions = isHovering || isSelected || UniversalPlatform.isMobile;
-    final optionOpacity = showOptions ? 1.0 : 0.0;
 
     Widget child = MouseRegion(
+      key: blockComponentKey,
       onEnter: (_) => setState(() => isHovering = true),
       onExit: (_) => setState(() => isHovering = false),
       child: DecoratedBox(
@@ -421,16 +439,17 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
               child: MouseRegion(
                 onEnter: (_) => setState(() => canPanStart = false),
                 onExit: (_) => setState(() => canPanStart = true),
-                child: Opacity(
-                  opacity: optionOpacity,
-                  child: widget.optionBuilder?.call(editorState, node) ??
-                      _CopyButton(
+                child: widget.optionBuilder
+                        ?.call(editorState, node, showOptions) ??
+                    Opacity(
+                      opacity: showOptions ? 1.0 : 0.0,
+                      child: _CopyButton(
                         node: node,
                         onCopy: widget.actions.onCopy!,
                         localizations: widget.localizations,
                         foregroundColor: style.foregroundColor,
                       ),
-                ),
+                    ),
               ),
             ),
             Positioned(
@@ -473,8 +492,6 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
       );
     }
 
-    child = Padding(key: blockComponentKey, padding: padding, child: child);
-
     child = BlockSelectionContainer(
       node: node,
       delegate: this,
@@ -484,6 +501,8 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
       selectionAboveBlock: widget.selectionAboveBlock,
       child: child,
     );
+
+    child = Padding(padding: padding, child: child);
 
     if (widget.actionWrapperBuilder != null) {
       child = widget.actionWrapperBuilder!(node, editorState, child);
