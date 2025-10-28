@@ -152,11 +152,8 @@ typedef CodeBlockTextSpanGenerator = TextSpan Function(
   BuildContext context,
 );
 
-/// Used to provide a custom copy button for the [CodeBlockComponentWidget].
-typedef CodeBlockCopyBuilder = Widget Function(EditorState, Node);
-
 /// Used to provide a custom widget.
-typedef CodeBlockWidgetBuilder = Widget Function(EditorState, Node);
+typedef CodeBlockCaptionBuilder = Widget Function(EditorState, Node);
 
 /// Used to provide a custom options widget for the [CodeBlockComponentWidget].
 typedef CodeBlockOptionBuilder = Widget Function(
@@ -181,7 +178,6 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
     this.actions = const CodeBlockActions(),
     this.actionWrapperBuilder,
     this.languagePickerBuilder,
-    this.copyButtonBuilder,
     this.localizations = const CodeBlockLocalizations(),
     this.textSpanGenerator,
     this.optionBuilder,
@@ -198,11 +194,10 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
     Widget child,
   )? actionWrapperBuilder;
   final CodeBlockLanguagePickerBuilder? languagePickerBuilder;
-  final CodeBlockCopyBuilder? copyButtonBuilder;
   final CodeBlockLocalizations localizations;
   final CodeBlockTextSpanGenerator? textSpanGenerator;
   final CodeBlockOptionBuilder? optionBuilder;
-  final CodeBlockWidgetBuilder? captionBuilder;
+  final CodeBlockCaptionBuilder? captionBuilder;
   final bool selectionAboveBlock;
 
   @override
@@ -294,7 +289,7 @@ class CodeBlockComponentWidget extends BlockComponentStatefulWidget {
   /// design of your app.
   ///
   final CodeBlockOptionBuilder? optionBuilder;
-  final CodeBlockWidgetBuilder? captionBuilder;
+  final CodeBlockCaptionBuilder? captionBuilder;
 
   final CodeBlockLocalizations localizations;
   final CodeBlockTextSpanGenerator? textSpanGenerator;
@@ -843,7 +838,7 @@ class _LanguageSelectionDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Padding(
       padding: const EdgeInsets.only(left: 16),
       child: DropdownMenu<String>(
         initialSelection: language ?? 'auto',
