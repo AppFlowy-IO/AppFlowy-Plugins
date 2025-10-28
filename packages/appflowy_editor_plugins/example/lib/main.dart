@@ -86,7 +86,7 @@ class _EditorState extends State<Editor> {
             height: 1.5,
           ),
         ),
-        styleBuilder: () => CodeBlockStyle(
+        styleBuilder: (_) => CodeBlockStyle(
           backgroundColor: Theme.of(context).brightness == Brightness.light
               ? Colors.grey[200]!
               : Colors.grey[800]!,
