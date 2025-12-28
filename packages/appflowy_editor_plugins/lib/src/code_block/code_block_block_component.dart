@@ -154,6 +154,7 @@ typedef CodeBlockTextSpanGenerator = TextSpan Function(
 
 /// Used to provide a custom widget.
 typedef CodeBlockCaptionBuilder = Widget Function(EditorState, Node);
+typedef CodeBlockFooterBuilder = Widget Function(EditorState, Node);
 
 /// Used to provide a custom options widget for the [CodeBlockComponentWidget].
 typedef CodeBlockOptionBuilder = Widget Function(
@@ -182,6 +183,7 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
     this.textSpanGenerator,
     this.optionBuilder,
     this.captionBuilder,
+    this.footerBuilder,
     this.selectionAboveBlock = false,
   });
 
@@ -198,6 +200,7 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
   final CodeBlockTextSpanGenerator? textSpanGenerator;
   final CodeBlockOptionBuilder? optionBuilder;
   final CodeBlockCaptionBuilder? captionBuilder;
+  final CodeBlockFooterBuilder? footerBuilder;
   final bool selectionAboveBlock;
 
   @override
@@ -217,6 +220,7 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
       localizations: localizations,
       optionBuilder: optionBuilder,
       captionBuilder: captionBuilder,
+      footerBuilder: footerBuilder,
       selectionAboveBlock: selectionAboveBlock,
     );
   }
@@ -244,6 +248,7 @@ class CodeBlockComponentWidget extends BlockComponentStatefulWidget {
     this.languagePickerBuilder,
     this.optionBuilder,
     this.captionBuilder,
+    this.footerBuilder,
     this.localizations = const CodeBlockLocalizations(),
     this.textSpanGenerator,
     this.selectionAboveBlock = false,
@@ -290,6 +295,7 @@ class CodeBlockComponentWidget extends BlockComponentStatefulWidget {
   ///
   final CodeBlockOptionBuilder? optionBuilder;
   final CodeBlockCaptionBuilder? captionBuilder;
+  final CodeBlockFooterBuilder? footerBuilder;
 
   final CodeBlockLocalizations localizations;
   final CodeBlockTextSpanGenerator? textSpanGenerator;
@@ -565,39 +571,48 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
 
     return Padding(
       padding: widget.padding,
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          if (style.showLineNumbers) ...[
-            _LinesOfCodeNumbers(
-              linesOfCode: linesOfCode,
-              textStyle: (style.textStyle ?? textStyleWithTextSpan()).copyWith(
-                color: style.foregroundColor ??
-                    Theme.of(context)
-                        .colorScheme
-                        .onSecondaryContainer
-                        .withAlpha(155),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (style.showLineNumbers) ...[
+                _LinesOfCodeNumbers(
+                  linesOfCode: linesOfCode,
+                  textStyle:
+                      (style.textStyle ?? textStyleWithTextSpan()).copyWith(
+                    color: style.foregroundColor ??
+                        Theme.of(context)
+                            .colorScheme
+                            .onSecondaryContainer
+                            .withAlpha(155),
+                  ),
+                ),
+              ],
+              Flexible(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 1),
+                  child: style.wrapLines
+                      ? child
+                      : Scrollbar(
+                          controller: scrollController,
+                          child: SingleChildScrollView(
+                            key: codeBlockKey,
+                            controller: scrollController,
+                            padding: const EdgeInsets.only(bottom: 16),
+                            physics: const ClampingScrollPhysics(),
+                            scrollDirection: Axis.horizontal,
+                            child: child,
+                          ),
+                        ),
+                ),
               ),
-            ),
-          ],
-          Flexible(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 1),
-              child: style.wrapLines
-                  ? child
-                  : Scrollbar(
-                      controller: scrollController,
-                      child: SingleChildScrollView(
-                        key: codeBlockKey,
-                        controller: scrollController,
-                        padding: const EdgeInsets.only(bottom: 16),
-                        physics: const ClampingScrollPhysics(),
-                        scrollDirection: Axis.horizontal,
-                        child: child,
-                      ),
-                    ),
-            ),
+            ],
           ),
+          if (widget.footerBuilder != null)
+            widget.footerBuilder!(editorState, node),
         ],
       ),
     );
