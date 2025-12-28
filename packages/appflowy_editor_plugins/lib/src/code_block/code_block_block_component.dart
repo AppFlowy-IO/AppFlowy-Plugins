@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:appflowy_editor/appflowy_editor.dart';
 import 'package:appflowy_editor_plugins/src/code_block/code_block_actions.dart';
 import 'package:appflowy_editor_plugins/src/code_block/code_block_localization.dart';
@@ -97,6 +96,9 @@ class CodeBlockKeys {
   ///
   /// The value is a String.
   static const String caption = 'caption';
+
+  /// The mermaid display mode of a code block.
+  static const String mermaidDisplayMode = 'mermaid_display_mode';
 }
 
 Node codeBlockNode({
@@ -166,6 +168,9 @@ typedef CodeBlockOptionBuilder = Widget Function(
 /// Used to provide a custom style for the [CodeBlockComponentWidget].
 typedef CodeBlockStyleBuilder = CodeBlockStyle Function(BlockComponentContext);
 
+/// Used to provide a custom show code checker for the [CodeBlockComponentWidget].
+typedef CodeBlockShowCodeChecker = bool Function(EditorState, Node);
+
 class CodeBlockComponentBuilder extends BlockComponentBuilder {
   CodeBlockComponentBuilder({
     super.configuration,
@@ -185,6 +190,7 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
     this.captionBuilder,
     this.footerBuilder,
     this.selectionAboveBlock = false,
+    this.showCodes,
   });
 
   final EdgeInsets padding;
@@ -202,6 +208,7 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
   final CodeBlockCaptionBuilder? captionBuilder;
   final CodeBlockFooterBuilder? footerBuilder;
   final bool selectionAboveBlock;
+  final CodeBlockShowCodeChecker? showCodes;
 
   @override
   BlockComponentWidget build(BlockComponentContext blockComponentContext) {
@@ -221,6 +228,7 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
       optionBuilder: optionBuilder,
       captionBuilder: captionBuilder,
       footerBuilder: footerBuilder,
+      showCodes: showCodes,
       selectionAboveBlock: selectionAboveBlock,
     );
   }
@@ -252,6 +260,7 @@ class CodeBlockComponentWidget extends BlockComponentStatefulWidget {
     this.localizations = const CodeBlockLocalizations(),
     this.textSpanGenerator,
     this.selectionAboveBlock = false,
+    this.showCodes,
   });
 
   final EdgeInsets padding;
@@ -300,6 +309,9 @@ class CodeBlockComponentWidget extends BlockComponentStatefulWidget {
   final CodeBlockLocalizations localizations;
   final CodeBlockTextSpanGenerator? textSpanGenerator;
   final bool selectionAboveBlock;
+
+  /// Whether to show the code content in the code block.
+  final CodeBlockShowCodeChecker? showCodes;
 
   @override
   State<CodeBlockComponentWidget> createState() =>
@@ -591,24 +603,25 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
                   ),
                 ),
               ],
-              Flexible(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 1),
-                  child: style.wrapLines
-                      ? child
-                      : Scrollbar(
-                          controller: scrollController,
-                          child: SingleChildScrollView(
-                            key: codeBlockKey,
+              if (widget.showCodes?.call(editorState, node) ?? true)
+                Flexible(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 1),
+                    child: style.wrapLines
+                        ? child
+                        : Scrollbar(
                             controller: scrollController,
-                            padding: const EdgeInsets.only(bottom: 16),
-                            physics: const ClampingScrollPhysics(),
-                            scrollDirection: Axis.horizontal,
-                            child: child,
+                            child: SingleChildScrollView(
+                              key: codeBlockKey,
+                              controller: scrollController,
+                              padding: const EdgeInsets.only(bottom: 16),
+                              physics: const ClampingScrollPhysics(),
+                              scrollDirection: Axis.horizontal,
+                              child: child,
+                            ),
                           ),
-                        ),
+                  ),
                 ),
-              ),
             ],
           ),
           if (widget.footerBuilder != null)
