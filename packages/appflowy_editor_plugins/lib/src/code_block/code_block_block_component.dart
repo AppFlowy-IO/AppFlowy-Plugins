@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 import 'package:universal_platform/universal_platform.dart';
 
 import 'code_block_themes.dart';
+import 'languages/mermaid.dart';
 import 'languages/zig.dart';
 
 final allCodeBlockLanguages = [
@@ -42,6 +43,7 @@ final allCodeBlockLanguages = [
   'Lisp',
   'Lua',
   'Markdown',
+  'Mermaid',
   'MATLAB',
   'Objective-C',
   'OCaml',
@@ -69,7 +71,7 @@ final defaultCodeBlockSupportedLanguages = allCodeBlockLanguages
     .toSet()
     .intersection(allLanguages.keys.toSet())
     .toList()
-  ..addAll(['auto', 'plain text', 'c', 'zig'])
+  ..addAll(['auto', 'plain text', 'c', 'zig', 'mermaid'])
   ..sort();
 
 class CodeBlockKeys {
@@ -541,7 +543,9 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
     final delta = node.delta ?? Delta();
     final content = delta.toPlainText();
 
-    final highlightObject = highlight.highlight..registerLanguage('zig', zig);
+    final highlightObject = highlight.highlight
+      ..registerLanguage('zig', zig)
+      ..registerLanguage('mermaid', mermaid);
     final result = highlightObject.parse(
       content,
       language: language,
