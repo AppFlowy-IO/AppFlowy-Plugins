@@ -388,7 +388,9 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
     super.initState();
     editorState = context.read<EditorState>();
     if (editorState.editable) {
-      editorState.selectionService.registerGestureInterceptor(interceptor);
+      if (editorState.service.selectionServiceKey.currentState != null) {
+        editorState.selectionService.registerGestureInterceptor(interceptor);
+      }
       editorState.selectionNotifier.addListener(calculateScrollPosition);
     }
     transactionSubscription = editorState.transactionStream.listen((event) {
@@ -403,10 +405,12 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
     super.didChangeDependencies();
 
     if (editorState.editable) {
-      editorState.selectionService.currentSelection
-          .removeListener(calculateScrollPosition);
-      editorState.selectionService
-          .unregisterGestureInterceptor(_interceptorKey);
+      if (editorState.service.selectionServiceKey.currentState != null) {
+        editorState.selectionService.currentSelection
+            .removeListener(calculateScrollPosition);
+        editorState.selectionService
+            .unregisterGestureInterceptor(_interceptorKey);
+      }
     }
 
     editorState = context.read<EditorState>();
@@ -416,11 +420,14 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
   void dispose() {
     scrollController.dispose();
     if (editorState.editable) {
-      editorState.selectionService.currentSelection
-          .removeListener(calculateScrollPosition);
-      editorState.selectionService
-          .unregisterGestureInterceptor(_interceptorKey);
+      if (editorState.service.selectionServiceKey.currentState != null) {
+        editorState.selectionService.currentSelection
+            .removeListener(calculateScrollPosition);
+        editorState.selectionService
+            .unregisterGestureInterceptor(_interceptorKey);
+      }
     }
+    editorState.selectionNotifier.removeListener(calculateScrollPosition);
     transactionSubscription.cancel();
     super.dispose();
   }
