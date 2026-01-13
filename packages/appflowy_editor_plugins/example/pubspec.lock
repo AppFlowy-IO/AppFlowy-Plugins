@@ -121,14 +121,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
-  dart_prism:
-    dependency: transitive
-    description:
-      name: dart_prism
-      sha256: "0061a22072e81877bb2447236d15c43413764d957fd0b822f91a5442486af516"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.1"
   device_info_plus:
     dependency: transitive
     description:
