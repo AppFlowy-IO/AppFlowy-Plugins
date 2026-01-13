@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:appflowy_editor/appflowy_editor.dart';
 import 'package:appflowy_editor_plugins/src/code_block/code_block_actions.dart';
 import 'package:appflowy_editor_plugins/src/code_block/code_block_localization.dart';
@@ -12,6 +11,7 @@ import 'package:provider/provider.dart';
 import 'package:universal_platform/universal_platform.dart';
 
 import 'code_block_themes.dart';
+import 'languages/mermaid.dart';
 import 'languages/zig.dart';
 
 final allCodeBlockLanguages = [
@@ -43,6 +43,7 @@ final allCodeBlockLanguages = [
   'Lisp',
   'Lua',
   'Markdown',
+  'Mermaid',
   'MATLAB',
   'Objective-C',
   'OCaml',
@@ -70,7 +71,7 @@ final defaultCodeBlockSupportedLanguages = allCodeBlockLanguages
     .toSet()
     .intersection(allLanguages.keys.toSet())
     .toList()
-  ..addAll(['auto', 'plain text', 'c', 'zig'])
+  ..addAll(['auto', 'plain text', 'c', 'zig', 'mermaid'])
   ..sort();
 
 class CodeBlockKeys {
@@ -97,6 +98,9 @@ class CodeBlockKeys {
   ///
   /// The value is a String.
   static const String caption = 'caption';
+
+  /// The mermaid display mode of a code block.
+  static const String mermaidDisplayMode = 'mermaid_display_mode';
 }
 
 Node codeBlockNode({
@@ -154,6 +158,7 @@ typedef CodeBlockTextSpanGenerator = TextSpan Function(
 
 /// Used to provide a custom widget.
 typedef CodeBlockCaptionBuilder = Widget Function(EditorState, Node);
+typedef CodeBlockFooterBuilder = Widget Function(EditorState, Node);
 
 /// Used to provide a custom options widget for the [CodeBlockComponentWidget].
 typedef CodeBlockOptionBuilder = Widget Function(
@@ -164,6 +169,12 @@ typedef CodeBlockOptionBuilder = Widget Function(
 
 /// Used to provide a custom style for the [CodeBlockComponentWidget].
 typedef CodeBlockStyleBuilder = CodeBlockStyle Function(BlockComponentContext);
+
+/// Used to provide a custom show code checker for the [CodeBlockComponentWidget].
+typedef CodeBlockShowCodeChecker = bool Function(EditorState, Node);
+
+/// Used to provide a custom code widget for the [CodeBlockComponentWidget].
+typedef CodeBlockCodeBuilder = Widget Function(CodeBlockComponentWidgetState, Widget);
 
 class CodeBlockComponentBuilder extends BlockComponentBuilder {
   CodeBlockComponentBuilder({
@@ -182,7 +193,10 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
     this.textSpanGenerator,
     this.optionBuilder,
     this.captionBuilder,
+    this.footerBuilder,
     this.selectionAboveBlock = false,
+    this.showCodes,
+    this.codeBuilder,
   });
 
   final EdgeInsets padding;
@@ -198,7 +212,10 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
   final CodeBlockTextSpanGenerator? textSpanGenerator;
   final CodeBlockOptionBuilder? optionBuilder;
   final CodeBlockCaptionBuilder? captionBuilder;
+  final CodeBlockFooterBuilder? footerBuilder;
   final bool selectionAboveBlock;
+  final CodeBlockShowCodeChecker? showCodes;
+  final CodeBlockCodeBuilder? codeBuilder;
 
   @override
   BlockComponentWidget build(BlockComponentContext blockComponentContext) {
@@ -217,6 +234,9 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
       localizations: localizations,
       optionBuilder: optionBuilder,
       captionBuilder: captionBuilder,
+      footerBuilder: footerBuilder,
+      showCodes: showCodes,
+      codeBuilder: codeBuilder,
       selectionAboveBlock: selectionAboveBlock,
     );
   }
@@ -244,9 +264,12 @@ class CodeBlockComponentWidget extends BlockComponentStatefulWidget {
     this.languagePickerBuilder,
     this.optionBuilder,
     this.captionBuilder,
+    this.footerBuilder,
     this.localizations = const CodeBlockLocalizations(),
     this.textSpanGenerator,
     this.selectionAboveBlock = false,
+    this.showCodes,
+    this.codeBuilder,
   });
 
   final EdgeInsets padding;
@@ -290,17 +313,24 @@ class CodeBlockComponentWidget extends BlockComponentStatefulWidget {
   ///
   final CodeBlockOptionBuilder? optionBuilder;
   final CodeBlockCaptionBuilder? captionBuilder;
+  final CodeBlockFooterBuilder? footerBuilder;
 
   final CodeBlockLocalizations localizations;
   final CodeBlockTextSpanGenerator? textSpanGenerator;
   final bool selectionAboveBlock;
 
+  /// Whether to show the code content in the code block.
+  final CodeBlockShowCodeChecker? showCodes;
+
+  /// Provide a custom code widget for the code block.
+  final CodeBlockCodeBuilder? codeBuilder;
+
   @override
   State<CodeBlockComponentWidget> createState() =>
-      _CodeBlockComponentWidgetState();
+      CodeBlockComponentWidgetState();
 }
 
-class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
+class CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
     with
         SelectableMixin,
         DefaultSelectableMixin,
@@ -368,7 +398,9 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
     super.initState();
     editorState = context.read<EditorState>();
     if (editorState.editable) {
-      editorState.selectionService.registerGestureInterceptor(interceptor);
+      if (editorState.service.selectionServiceKey.currentState != null) {
+        editorState.selectionService.registerGestureInterceptor(interceptor);
+      }
       editorState.selectionNotifier.addListener(calculateScrollPosition);
     }
     transactionSubscription = editorState.transactionStream.listen((event) {
@@ -383,10 +415,12 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
     super.didChangeDependencies();
 
     if (editorState.editable) {
-      editorState.selectionService.currentSelection
-          .removeListener(calculateScrollPosition);
-      editorState.selectionService
-          .unregisterGestureInterceptor(_interceptorKey);
+      if (editorState.service.selectionServiceKey.currentState != null) {
+        editorState.selectionService.currentSelection
+            .removeListener(calculateScrollPosition);
+        editorState.selectionService
+            .unregisterGestureInterceptor(_interceptorKey);
+      }
     }
 
     editorState = context.read<EditorState>();
@@ -396,11 +430,14 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
   void dispose() {
     scrollController.dispose();
     if (editorState.editable) {
-      editorState.selectionService.currentSelection
-          .removeListener(calculateScrollPosition);
-      editorState.selectionService
-          .unregisterGestureInterceptor(_interceptorKey);
+      if (editorState.service.selectionServiceKey.currentState != null) {
+        editorState.selectionService.currentSelection
+            .removeListener(calculateScrollPosition);
+        editorState.selectionService
+            .unregisterGestureInterceptor(_interceptorKey);
+      }
     }
+    editorState.selectionNotifier.removeListener(calculateScrollPosition);
     transactionSubscription.cancel();
     super.dispose();
   }
@@ -523,7 +560,9 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
     final delta = node.delta ?? Delta();
     final content = delta.toPlainText();
 
-    final highlightObject = highlight.highlight..registerLanguage('zig', zig);
+    final highlightObject = highlight.highlight
+      ..registerLanguage('zig', zig)
+      ..registerLanguage('mermaid', mermaid);
     final result = highlightObject.parse(
       content,
       language: language,
@@ -565,39 +604,50 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
 
     return Padding(
       padding: widget.padding,
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          if (style.showLineNumbers) ...[
-            _LinesOfCodeNumbers(
-              linesOfCode: linesOfCode,
-              textStyle: (style.textStyle ?? textStyleWithTextSpan()).copyWith(
-                color: style.foregroundColor ??
-                    Theme.of(context)
-                        .colorScheme
-                        .onSecondaryContainer
-                        .withAlpha(155),
-              ),
-            ),
-          ],
-          Flexible(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 1),
-              child: style.wrapLines
-                  ? child
-                  : Scrollbar(
-                      controller: scrollController,
-                      child: SingleChildScrollView(
-                        key: codeBlockKey,
-                        controller: scrollController,
-                        padding: const EdgeInsets.only(bottom: 16),
-                        physics: const ClampingScrollPhysics(),
-                        scrollDirection: Axis.horizontal,
-                        child: child,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (style.showLineNumbers) ...[
+                _LinesOfCodeNumbers(
+                  linesOfCode: linesOfCode,
+                  textStyle:
+                      (style.textStyle ?? textStyleWithTextSpan()).copyWith(
+                    color: style.foregroundColor ??
+                        Theme.of(context)
+                            .colorScheme
+                            .onSecondaryContainer
+                            .withAlpha(155),
+                  ),
+                ),
+              ],
+              if (widget.showCodes?.call(editorState, node) ?? true)
+                widget.codeBuilder?.call(this, child) ??
+                    Flexible(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 1),
+                        child: style.wrapLines
+                            ? child
+                            : Scrollbar(
+                                controller: scrollController,
+                                child: SingleChildScrollView(
+                                  key: codeBlockKey,
+                                  controller: scrollController,
+                                  padding: const EdgeInsets.only(bottom: 16),
+                                  physics: const ClampingScrollPhysics(),
+                                  scrollDirection: Axis.horizontal,
+                                  child: child,
+                                ),
+                              ),
                       ),
                     ),
-            ),
+            ],
           ),
+          if (widget.footerBuilder != null)
+            widget.footerBuilder!(editorState, node),
         ],
       ),
     );
