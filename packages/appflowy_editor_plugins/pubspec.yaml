@@ -25,7 +25,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  appflowy_editor: ^5.2.0
+  appflowy_editor:
   provider: ^6.1.2
 
   # Link Preview Plugin
@@ -41,3 +41,9 @@ dependencies:
 
 dev_dependencies:
   flutter_lints: ^4.0.0
+
+dependency_overrides:
+  appflowy_editor:
+    git:
+      url: https://github.com/AppFlowy-IO/AppFlowy-Editor.git
+      ref: 4f4be5d

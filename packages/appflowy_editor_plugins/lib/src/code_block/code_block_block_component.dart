@@ -174,17 +174,14 @@ typedef CodeBlockStyleBuilder = CodeBlockStyle Function(BlockComponentContext);
 typedef CodeBlockShowCodeChecker = bool Function(EditorState, Node);
 
 /// Used to provide a custom code widget for the [CodeBlockComponentWidget].
-typedef CodeBlockCodeBuilder = Widget Function(CodeBlockComponentWidgetState, Widget);
+typedef CodeBlockCodeBuilder = Widget Function(
+  CodeBlockComponentWidgetState,
+  Widget,
+);
 
 class CodeBlockComponentBuilder extends BlockComponentBuilder {
   CodeBlockComponentBuilder({
     super.configuration,
-    this.padding = const EdgeInsets.only(
-      top: 38,
-      left: 20,
-      right: 20,
-      bottom: 38,
-    ),
     this.styleBuilder,
     this.actions = const CodeBlockActions(),
     this.actionWrapperBuilder,
@@ -199,7 +196,6 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
     this.codeBuilder,
   });
 
-  final EdgeInsets padding;
   final CodeBlockStyleBuilder? styleBuilder;
   final CodeBlockActions actions;
   final Widget Function(
@@ -224,7 +220,6 @@ class CodeBlockComponentBuilder extends BlockComponentBuilder {
       key: node.key,
       node: node,
       configuration: configuration,
-      padding: padding,
       showActions: showActions(node),
       actionBuilder: (_, state) => actionBuilder(blockComponentContext, state),
       actionWrapperBuilder: actionWrapperBuilder,
@@ -257,7 +252,6 @@ class CodeBlockComponentWidget extends BlockComponentStatefulWidget {
     super.showActions,
     super.actionBuilder,
     super.configuration = const BlockComponentConfiguration(),
-    this.padding = const EdgeInsets.all(20),
     this.style,
     this.actions = const CodeBlockActions(),
     this.actionWrapperBuilder,
@@ -271,8 +265,6 @@ class CodeBlockComponentWidget extends BlockComponentStatefulWidget {
     this.showCodes,
     this.codeBuilder,
   });
-
-  final EdgeInsets padding;
 
   /// The style of the code block.
   ///
@@ -534,8 +526,6 @@ class CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
       child: child,
     );
 
-    child = Padding(padding: padding, child: child);
-
     if (widget.actionWrapperBuilder != null) {
       child = widget.actionWrapperBuilder!(node, editorState, child);
     } else if (UniversalPlatform.isDesktopOrWeb) {
@@ -547,6 +537,11 @@ class CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
         );
       }
     }
+
+    child = Padding(
+      padding: margin,
+      child: child,
+    );
 
     return child;
   }
@@ -603,7 +598,7 @@ class CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
     );
 
     return Padding(
-      padding: widget.padding,
+      padding: padding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
