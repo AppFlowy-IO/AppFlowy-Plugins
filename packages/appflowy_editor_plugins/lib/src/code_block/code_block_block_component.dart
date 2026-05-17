@@ -14,7 +14,7 @@ import 'package:universal_platform/universal_platform.dart';
 import 'code_block_themes.dart';
 
 final allCodeBlockLanguages = [
-  'Assembly',
+  'x86asm',
   'Bash',
   'BASIC',
   'C',
